@@ -227,6 +227,158 @@ If you find a bug, please create an Issue on GitHub.
 
 ---
 
-## License
 
-By contributing, you agree that your contributions will be licensed under its MIT License.
+---
+
+## 🔧 IDE Setup & Recommended Tools
+
+We strongly recommend **VS Code** for development.
+
+### VS Code Extensions
+Please install the following extensions for an optimal experience:
+1.  **ESLint** (`dbaeumer.vscode-eslint`): For real-time linting.
+2.  **Prettier** (`esbenp.prettier-vscode`): For automatic formatting.
+3.  **Tailwind CSS IntelliSense** (if using Tailwind): For class completion.
+4.  **Error Lens**: To see errors inline.
+
+### Workspace Settings (`.vscode/settings.json`)
+We recommend creating a workspace setting file to enforce formatting on save:
+
+```json
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "typescript.tsdk": "node_modules/typescript/lib"
+}
+```
+
+### Debugging Config (`.vscode/launch.json`)
+Use this config to debug the application (and workers) directly in VS Code:
+
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "pwa-chrome",
+      "request": "launch",
+      "name": "Launch Chrome against localhost",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}"
+    }
+  ]
+}
+```
+
+---
+
+## 🏗️ Architecture & mental Model
+
+Before writing code, please understand the **Data Flow**:
+1.  **UI Event** (User clicks) -> **Dispatch Action** (Zustand).
+2.  **Action** -> **Updates State**.
+3.  **State Change** -> **Triggers Re-render**.
+
+**Rule #1**: Never mutate state directly. Use the storage setters.
+**Rule #2**: Never perform heavy math in the Component render body. Use `useMemo` or push it to the Worker.
+
+---
+
+## 🧪 Testing Philosophy
+
+Currently, our testing strategy is **Pragmatic Manual QA**.
+
+### Why no Unit Tests?
+The core logic relies on visual inspection of Canvas pixel manipulation, which is notoriously brittle to unit test without complex mocking of the Canvas API.
+
+### Future: Visual Regression Testing
+We plan to introduce **Playwright**.
+- **Goal**: Render the app, click (100, 100), take a screenshot, compare with baseline.
+- **Why**: To ensure no regression in rendering quality (e.g., if a browser update changes `globalCompositeOperation`).
+
+### How to Test Your Changes
+1.  **The "Smoke Test"**: Does the app load?
+2.  **The "Interaction Test"**: Click 10 random spots. Do they highlight?
+3.  **The "Stress Test"**: Hold Shift and scribble across the screen. Does it crash?
+4.  **The "Resize Test"**: Resize window violently. Does the overlay stay aligned?
+
+---
+
+## 📦 Release & Versioning Strategy
+
+We follow **Semantic Versioning (SemVer)**.
+
+### Version Format: `MAJOR.MINOR.PATCH`
+- **MAJOR**: Breaking changes (e.g., Rewrite of Worker protocol, changing input image format).
+- **MINOR**: New features (e.g., New "Magic Wand" tool, New Color Picker).
+- **PATCH**: Bug fixes (e.g., Fixing selection offset, memory leak fix).
+
+### Release Checklist (For Maintainers)
+1.  **Update Changelog**: Manually update `CHANGELOG.md` with PRs merged.
+2.  **Bump Version**: `npm version patch` (or minor/major).
+3.  **Tag**: `git tag v1.0.1`
+4.  **Push**: `git push origin main --tags`
+5.  **Build**: Run `npm run build` locally to verify production build passes.
+6.  **Deploy**: (If automated) GitHub Actions will pick up the tag and deploy to Vercel.
+
+---
+
+## 🤝 Code Review Etiquette
+
+### For the Contributor (You)
+- **Small PRs**: Try to keep PRs under 400 lines. If it's larger, split it.
+- **Self-Comment**: Add comments on your own PR highlighting tricky parts ("I did X because Y").
+- **Respond Fast**: Try to address comments within 24 hours.
+
+### For the Reviewer
+- **Be Kind**: Critique the code, not the person.
+- **Be Explicit**: "Change this" vs "Consider changing this to X because Y".
+- **Focus on Logic**: Don't nitpick formatting (Prettier handles that). Focus on race conditions, memory leaks, and architectural fit.
+
+---
+
+## ⚖️ Detailed Code of Conduct (Enforcement)
+
+### Scope
+This Code of Conduct applies both within project spaces and in public spaces when an individual is representing the project or its community.
+
+### Enforcement Responsibilities
+Community leaders are responsible for clarifying and enforcing our standards of acceptable behavior and will take appropriate and fair corrective action in response to any behavior that they deem inappropriate, threatening, offensive, or harmful.
+
+### Enforcement Guidelines
+Community leaders will follow these Community Impact Guidelines in determining the consequences for any action they deem in violation of this Code of Conduct:
+
+**1. Correction**
+- **Community Impact**: Use of inappropriate language or other behavior deemed unprofessional or unwelcome in the community.
+- **Consequence**: A private, written warning from community leaders, providing clarity around the nature of the violation and an explanation of why the behavior was inappropriate.
+
+**2. Warning**
+- **Community Impact**: A violation through a single incident or series of actions.
+- **Consequence**: A warning with consequences for continued behavior. No interaction with the people involved, including unsolicited interaction with those enforcing the Code of Conduct, for a specified period of time.
+
+**3. Temporary Ban**
+- **Community Impact**: A serious violation of community standards, including sustained inappropriate behavior.
+- **Consequence**: A temporary ban from identifying with the community or from any interactive communication with the community for a specified period of time.
+
+**4. Permanent Ban**
+- **Community Impact**: Demonstrating a pattern of violation of community standards, including sustained inappropriate behavior, harassment of an individual, or aggression toward or disparagement of classes of individuals.
+- **Consequence**: A permanent ban from any public sort of interaction within the community.
+
+---
+
+## ❓ FAQ for Contributors
+
+**Q: Can I refactor the whole app to use Redux?**
+A: **No.** We chose Zustand for performance reasons (see ARCHITECTURE.md). Unless you have a benchmark proving Redux is faster (unlikely), please stick to the existing stack.
+
+**Q: Can I add a UI library like Material UI?**
+A: **Preferably No.** We want to keep the bundle size small. Currently we use headless HTML+CSS. Adding a 200KB UI library for buttons is overkill.
+
+**Q: I found a security vulnerability!**
+A: Please do **NOT** open a GitHub Issue. Email the maintainer directly at `security@colorcraft.com`. We will work with you to patch it before disclosure.
+
+---
+**End of Contribution Guidelines**
