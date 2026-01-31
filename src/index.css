@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+@layer base {
+
+  html,
+  body,
+  #root {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+  }
+
+  body {
+    @apply bg-neutral-900 text-white font-sans antialiased;
+  }
+
+  .canvas-transition {
+    @apply transition-opacity duration-300 ease-in-out;
+  }
+}
