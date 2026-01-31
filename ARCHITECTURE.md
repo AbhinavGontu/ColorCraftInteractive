@@ -122,6 +122,68 @@ sequenceDiagram
     UI->>St: Render Canvas
 ```
 
+### 2.3 Application State Machine (UML State Diagram)
+
+This diagram captures the lifecycle of the application, focusing on the critical initialization and processing phases.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Idle
+    Idle --> LoadingImages: User Selects Model
+    
+    state LoadingImages {
+        [*] --> FetchingAssets
+        FetchingAssets --> ValidatingDimensions: Assets Loaded
+        ValidatingDimensions --> Error: Mismatch
+        ValidatingDimensions --> ProcessingMasks: Valid
+    }
+
+    state ProcessingMasks {
+        [*] --> WorkerInit
+        WorkerInit --> SegmentationLoop: Post Message
+        SegmentationLoop --> AggregatingResults
+        AggregatingResults --> Ready: Success
+        SegmentationLoop --> Error: Worker Crash
+    }
+
+    Ready --> Painting: User Click
+    Painting --> Ready: Canvas Updated
+    Error --> Idle: User Resets
+```
+
+### 2.4 User Interaction Flow (UML Activity Diagram)
+
+Detailed workflow for the core "Selection & Painting" feature, handling modifiers like Shift-Click.
+
+```mermaid
+flowchart TD
+    Start((Start)) --> UserHover[User Hovers Canvas]
+    UserHover --> GetCoord[Get Mouse Position]
+    GetCoord --> MapCoord{Map to MaskID}
+    
+    MapCoord -->|Mask ID = 0| ShowTooltip[Cursor: Default]
+    MapCoord -->|Mask ID > 0| ShowHighlight[Cursor: Pointer\nHighlight Region]
+    
+    ShowHighlight --> UserClick{User Clicks}
+    
+    UserClick --> CheckShift{Shift Key Held?}
+    
+    CheckShift -->|No| ClearSelection[Clear Previous Selection]
+    ClearSelection --> SelectNew[Add Target Mask to Selection]
+    
+    CheckShift -->|Yes| ToggleMask{Is Mask Selected?}
+    ToggleMask -->|Yes| Deselect[Remove from Selection]
+    ToggleMask -->|No| MultiSelect[Add to Selection]
+    
+    SelectNew --> Render[Re-render Highlight Canvas]
+    Deselect --> Render
+    MultiSelect --> Render
+    
+    Render --> SelectColor{Select Paint Color}
+    SelectColor --> UpdateColorMap[Update MaskColor Map]
+    UpdateColorMap --> RenderPaint[Re-render Paint Canvas]
+```
+
 ---
 
 ## 3. Algorithmic Deep Dive
