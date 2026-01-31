@@ -35,29 +35,57 @@ Before you begin, ensure you have the following installed:
 - **npm**: v7.0.0 or higher (Installed with Node.js)
 - **Git**: ([Download](https://git-scm.com/))
 
-### Installation
+### Installation & Startup Plan
 
-1.  **Clone the Repository**
-    ```bash
-    git clone https://github.com/yourusername/colorcraft.git
-    cd colorcraft
-    ```
+Follow these steps to get the project running locally.
 
-2.  **Install Dependencies**
-    We use `npm` for dependency management.
-    ```bash
-    npm install
-    # or if you prefer yarn
-    yarn install
-    ```
+#### 1. System Requirements Check
+Ensure your environment meets the minimum version requirements. Run the following check:
 
-3.  **Start Development Server**
-    ```bash
-    npm run dev
-    ```
+```bash
+node -v
+# Output must be v16.0.0 or higher. Example: v18.17.0
+```
 
-4.  **Open in Browser**
-    Visit [http://localhost:5173](http://localhost:5173). You should see the application load and the initial image set begin processing.
+#### 2. Clone the Repository
+```bash
+git clone https://github.com/yourusername/colorcraft.git
+cd colorcraft
+```
+
+#### 3. Install Dependencies
+We strictly use `npm ci` (Clean Install) to ensure your local `node_modules` exactly match the `package-lock.json`. This prevents "it works on my machine" issues.
+
+```bash
+npm ci
+```
+*Troubleshooting*: If `npm ci` fails due to conflicts, run `npm install` to regenerate the lockfile.
+
+#### 4. Environment Verification (Optional)
+Before starting, you can run a lint check to ensure all files are healthy.
+```bash
+npm run lint
+```
+
+#### 5. Start the Application
+Launch the local development server.
+```bash
+npm run dev
+```
+
+**Successful Output:**
+```text
+  VITE v4.4.9  ready in 430 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+```
+
+#### 6. Accessing the App
+Open your browser (Chrome/Edge/Firefox) and navigate to:
+**[http://localhost:5173](http://localhost:5173)**
+
+*Note: Safari users may experience stricter memory limits on Web Workers.*
 
 ### Building for Production
 
