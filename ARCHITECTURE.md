@@ -626,6 +626,133 @@ $$
 **Yes for Display**: You can use JPEG for the `original.png` visual layer, but the `edge.png` must be lossless PNG.
 
 ---
-**End of Extended Architecture Document**
 
+## 13. Glossary of Terms
 
+To ensure ambiguous terms are well-defined:
+
+- **Bbox (Bounding Box)**: The smallest rectangle `{minX, minY, maxX, maxY}` that fully encloses a mask. Used for optimizing re-renders.
+- **Canvas Stacking context**: The 3-layer `div` containing Base image (z=0), Paint (z=1), and Highlight (z=2).
+- **Cleaned Image**: The `cleaned.png` asset where shadows/occlusions are digitally removed to allow "flat" painting.
+- **Edge Map**: A single-channel image where pixel intensity represents the likelihood of an architectural edge.
+- **Flood Fill**: An algorithm that determines the area connected to a given node in a multi-dimensional array.
+- **Golden Angle**: $\approx 137.5^\circ$. Used to space out hues to maximize visual distinctness.
+- **Hydration**: (Not used here) But often refers to React attaching listeners. We use "Initialization" for the Worker phase.
+- **Intrinsic Dimensions**: The actual pixel size of the source image (e.g., 1920x1080), opaque to the CSS size.
+- **Mask ID**: A non-zero 32-bit integer representing a unique region. 0 is reserved for "Unselectable".
+- **Normal Map**: A 3-channel image encoding surface orientation.
+- **Transferable Object**: An `ArrayBuffer` whose memory ownership is moved across threads, rendering the original unusable but preventing cloning.
+- **Zustand**: "State" in German. Our chosen state manager.
+
+---
+
+## 14. Codebase Walkthrough (File by File)
+
+For the new contributor, here is a guided tour of the critical files.
+
+### `src/App.tsx`
+The root shell. It holds the `Layout`.
+- **Logic**: minimal.
+- **Role**: Provides the flexbox structure for Sidebar + Viewer.
+
+### `src/components/ImageViewer.tsx`
+**Lines**: ~300
+**Complexity**: High
+**Role**:
+- Registers the Canvas Ref.
+- Listens to global `maskMap` updates.
+- **Critical Function**: `handleClick`. It performs the coordinate transform `event.clientX` -> `imgIndex`.
+- **Critical Effect**: `useEffect[paintCanvasRef]`. This is the "Render Loop". It iterates `maskMap`, looks up colors, and populates `ImageData`.
+
+### `src/store/appStore.ts`
+**Role**: Result of `create<AppState>()`.
+- **State**:
+    - `isLoading`: Global spinner.
+    - `masks`: A Javascript Map `Map<number, Mask>`.
+    - `selectedMaskIds`: A Javascript Set `Set<number>`.
+- **Actions**:
+    - `selectMask(id)`: Toggles existence in the Set.
+    - `setColor(id, hex)`: Updates the `masks` Map. *Note: this does not trigger segmentation, only repaint.*
+
+### `src/utils/segmentation.worker.ts`
+**Role**: The heavy lifter.
+**Flow**:
+1.  Receives `ImageData` (Uint8ClampedArray).
+2.  Allocates `VisistedMap` (Uint8Array).
+3.  Loops `y` from 0 to height:
+    4.  Loops `x` from 0 to width:
+        5. Performs **Edge Check**.
+        6. Starts **BFS** if unvisited.
+        7. Push to Queue.
+        8. While Queue:
+            9. Check 4 neighbors (Up, Down, Left, Right).
+            10. Compare Normals (Manhattan Dist).
+            11. Add to Mask.
+4. Returns `maskMap`.
+
+---
+
+## 15. Theoretical Database Schema
+
+If we were to add a backend (PostgreSQL), this would be the schema.
+
+### `projects`
+| Column | Type | Description |
+|:--- |:--- |:--- |
+| `id` | UUID | PK |
+| `name` | VARCHAR | User defined name |
+| `created_at` | TIMESTAMPTZ | |
+
+### `image_assets`
+| Column | Type | Description |
+|:--- |:--- |:--- |
+| `id` | UUID | PK |
+| `project_id` | UUID | FK -> projects.id |
+| `type` | ENUM | 'original', 'edge', 'normal' |
+| `s3_key` | VARCHAR | Path to blob storage |
+
+### `masks`
+| Column | Type | Description |
+|:--- |:--- |:--- |
+| `id` | BIGINT | PK |
+| `project_id` | UUID | FK |
+| `mask_index` | INT | The ID from the segmentation algo |
+| `color_hex` | CHAR(7) | The applied paint |
+| `label` | VARCHAR | e.g. "North Wall" |
+
+---
+
+## 16. Accessibility Compliance Report (VPAT Draft)
+
+**Product**: ColorCraft V1
+**Evaluation**: Self-eval
+
+| Criteria | Support Level | Remarks |
+|:--- |:--- |:--- |
+| **1.1.1 Non-text Content** | Supports with Exceptions | Canvas lacks alt-text for internal regions. |
+| **1.3.1 Info and Relationships** | Supports | Sidebar uses semantic lists. |
+| **2.1.1 Keyboard** | Supports with Exceptions | Cannot paint via keyboard yet. |
+| **2.1.2 No Keyboard Trap** | Supports | Focus takes you in and out of app. |
+| **2.3.1 Three Flashes** | Supports | No strobing animations. |
+| **2.4.7 Focus Visible** | Supports | Default browser outline maintained. |
+
+---
+
+## 17. Security Threat Model
+
+### Threat: Malicious Image Upload
+**Risk**: User uploads an "Image Bomb" (30000x30000 pixels).
+**Impact**: Browser Crash (OOM).
+**Mitigation**:
+- Client-side validation of `img.width * img.height < 50_000_000`.
+- Timeout in Worker (kill after 10s).
+
+### Threat: XSS via Color Hex
+**Risk**: User inputs `<script>alert(1)</script>` into Color Hex field.
+**Impact**: Execution.
+**Mitigation**:
+- Regex validation `^#[0-9A-Fa-f]{6}$`.
+- React automatically escapes string variables.
+
+---
+**End of Architecture Document**

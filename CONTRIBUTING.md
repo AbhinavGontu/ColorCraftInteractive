@@ -381,4 +381,331 @@ A: **Preferably No.** We want to keep the bundle size small. Currently we use he
 A: Please do **NOT** open a GitHub Issue. Email the maintainer directly at `security@colorcraft.com`. We will work with you to patch it before disclosure.
 
 ---
+
+---
+
+## 10. Issue & PR Templates
+
+Please copy-paste these when opening contributions.
+
+### Bug Report Template
+```markdown
+## 🐛 Bug Report
+**Description**:
+[Short summary]
+
+**Reproduction Steps**:
+1. Go to '...'
+2. Click on '....'
+3. Scroll down to '....'
+4. See error
+
+**Expected result**:
+[Describe what needs to happen]
+
+**Actual result**:
+[Describe what actually happened]
+
+**Screenshots**:
+[Paste images here]
+
+**Environment**:
+- OS: [e.g. macOS 14]
+- Browser: [e.g. Chrome 120]
+```
+
+### Feature Request Template
+```markdown
+## 🚀 Feature Request
+**Pitch**:
+[A clear and concise description of what you want to happen.]
+
+**Why?**:
+[Explain the business value or user benefit.]
+
+**Mockups**:
+[Sketch or Figma link]
+```
+
+### Pull Request Template
+```markdown
+## 🛠️ PR Summary
+- [ ] Fixes #issue
+- [ ] Feature: ...
+
+## 🔍 Implementation Details
+[Explain the technical choices]
+
+## 📸 Screenshots (Before vs After)
+
+## ✅ Checklist
+- [ ] Lint passed
+- [ ] Logic Verified
+```
+
+---
+
+## 11. Case Studies: The Good, The Bad, and The Ugly
+
+To help you understand our standards, here are examples.
+
+### Case Study A: The "Perfect" PR
+**Subject**: `feat(canvas): implement offscreen canvas for rendering`
+**Files**: 3 files changed.
+**Description**:
+> "Currently, painting blocks the main thread. This PR moves the paint command to an OffscreenCanvas in the worker.
+> I used `transferControlToOffscreen`."
+**Review**:
+> "Brilliant usage of the new API. Code is clean. Variables named `offscreenCtx`. Merged."
+
+### Case Study B: The "Lazy" PR
+**Subject**: `fix stuff`
+**Files**: 12 files changed.
+**Description**: "Fixed the bug."
+**Review**:
+> "Which bug? Why are there formatting changes in 10 files? Please revert the formatting noise and describe the fix."
+
+### Case Study C: The "Over-Engineering" PR
+**Subject**: `refactor: rewrite state with Redux Toolkit and Saga`
+**Files**: 45 files changed.
+**Description**: "Zustand was too simple. I added Sagas for better side effect handling."
+**Review**:
+> "Closed. We explicitly state in ARCHITECTURE.md that we prefer Zustand for performance and simplicity. Please discuss architecture changes in an Issue first."
+
+---
+
+## 12. Advanced Git Workflows
+
+### Rebase Strategy
+We prefer a **Linear History**. Please do not use `git merge` in your local branch if you can avoid it. Use `git rebase`.
+
+**How to Rebase**:
+1.  **Fetch**: `git fetch origin`
+2.  **Rebase**: `git rebase origin/main`
+3.  **Conflict**: If conflict, fix files.
+4.  **Continue**: `git add .` -> `git rebase --continue`
+5.  **Force Push**: `git push origin my-branch --force-with-lease`
+
+### Squashing Commits
+If you have 10 commits like "fix typo", "fix typo again", please squash them.
+
+**Interactive Rebase**:
+```bash
+git rebase -i HEAD~5
+# Change 'pick' to 'squash' (s) for the commits you want to merge.
+```
+
+---
+
+## 13. Maintainer Guide (Runbook)
+
+This section is for project admins.
+
+### Handling Stale Issues
+- If an issue has no activity for 30 days, tag `stale`.
+- If no reply in 14 days, close.
+- Message: "Closing due to inactivity. Please reopen if this persists."
+
+### Managing "Good First Issues"
+- Tag easy CSS fixes or documentation typos as `good first issue`.
+- These are reserved for first-time contributors. Do not merge PRs from senior devs for these unless stale.
+
+### Security Patching
+If `npm audit` reveals a High Severity vulnerability:
+1.  Create branch `hotfix/security-audit`.
+2.  Run `npm audit fix`.
+3.  Test functionality.
+4.  Merge immediately and Tag a Patch release.
+
+---
+
+---
+
+## 14. Project Governance
+
+### Roles & Responsibilities
+
+#### Contributor
+- Submits PRs.
+- Reports bugs.
+- Has no merge rights.
+
+#### Maintainer
+- Triage issues.
+- Review PRs.
+- Can merge to `main`.
+- Can tag releases.
+
+#### Admin (Steering Committee)
+- Sets the roadmap.
+- Has admin access to the repo settings.
+- Handles Code of Conduct violations.
+
+### Decision Making Process
+- **Minor Changes**: Maintainer discretion.
+- **Major Features**: Requires an **RFC** (Request for Comment) issue pinned for 7 days.
+- **Consensus**: We aim for "Lazy Consensus". If no one objects in 72 hours, proceed.
+
+---
+
+## 15. CSS Architecture Guide
+
+We use a hybrid approach of **Tailwind Utility** + **BEM Custom CSS**.
+
+### When to use Tailwind?
+For layout and spacing.
+- `flex`, `p-4`, `gap-2`, `absolute`.
+- **Why**: It reduces the need for "wrapper" classes in CSS files.
+
+### When to use Custom CSS (`index.css`)?
+For complex visual effects or hardware acceleration hacks.
+- `backdrop-filter`
+- `mix-blend-mode`
+- Animations (`@keyframes`)
+
+### Naming Convention
+If you must create a class, use BEM:
+```css
+/* Block */
+.color-picker {}
+
+/* Element */
+.color-picker__swatch {}
+
+/* Modifier */
+.color-picker__swatch--active {}
+```
+
+---
+
+## 16. RFC Process (Request For Comments)
+
+Planning a big feature? Don't write code yet. Write an RFC.
+
+### Steps
+1.  Open an Issue with label `RFC`.
+2.  Title: `RFC: [Feature Name]`.
+3.  Fill the template:
+    - **Summary**: One liner.
+    - **Motivation**: Why do we need this?
+    - **Detailed Design**: How will it work?
+    - **Drawbacks**: Why should we NOT do this?
+    - **Alternatives**: What else did you consider?
+
+### Examples of RFCS
+- "Migration to WebGPU"
+- "Adding Redo/Undo History Stack"
+- "User Accounts System"
+
+---
+
+## 17. Localization (i18n) Contribution
+
+Helping translate ColorCraft is a great way to contribute without coding!
+
+### Workflow
+1.  Find `src/locales/en.json`.
+2.  Copy it to `src/locales/fr.json` (for French).
+3.  Translate the values. **Do not execute code** inside the strings.
+4.  Open a PR `docs: add french translation`.
+
+### Rules
+- Keep the tone "Professional yet Friendly".
+- Do not translate "ColorCraft" (Product Name).
+- Use local context (e.g., "Zip Code" vs "Postal Code").
+
+---
+
+## 18. Final Words
+
+Open Source is built on trust and collaboration. We trust you to do your best work, and we are here to help you succeed. Don't be afraid to ask "stupid" questions. The only stupid question is the one unasked that leads to a production bug!
+
+Happy Coding! 🎨
+
+---
+
+---
+
+## 19. Documentation Style Guide
+
+When writing docs (like this file), please follow these rules to ensure consistency.
+
+### Grammar & Tone
+- **Voice**: Active Voice. ("The function returns X", not "X is returned by the function").
+- **Pronouns**: Use "We" for the project team, "You" for the user. Avoid "I".
+- **Tone**: Professional, encouraging, technical but accessible.
+
+### Markdown Formatting
+- **Headers**: Use Title Case (`# Getting Started`).
+- **Lists**: Use hyphens `-` for unordered lists, not asterisks `*`.
+- **Code Blocks**: Always specify the language (` ```typescript `).
+- **Links**: Use descriptive link text.
+    - Bad: [Click here](url)
+    - Good: [Read the Docs](url)
+
+### Diagramming
+We use **Mermaid.js**.
+- Prefer `flowchart TD` for logic.
+- Prefer `sequenceDiagram` for async flows.
+- Keep diagrams simple. If it's too complex, break it into two.
+
+---
+
+## 20. Git Commit Emojis (Optional)
+
+We support the "Gitmoji" standard for commit messages, though it is not mandatory.
+
+| Emoji | Meaning | Usage |
+|:--- |:--- |:--- |
+| ✨ `:sparkles:` | New Feature | `feat: ...` |
+| 🐛 `:bug:` | Bug Fix | `fix: ...` |
+| 📚 `:books:` | Documentation | `docs: ...` |
+| 🎨 `:art:` | Style/Format | `style: ...` |
+| ♻️ `:recycle:` | Refactor | `refactor: ...` |
+| ⚡️ `:zap:` | Performance | `perf: ...` |
+| ✅ `:white_check_mark:` | Tests | `test: ...` |
+| 🔧 `:wrench:` | Config | `chore: ...` |
+
+---
+
+## 21. Reviewing Dependencies
+
+Before adding a new NPM package, consider:
+
+1.  **Bundle Size**: Use [BundlePhobia](https://bundlephobia.com).
+    - If it's > 10KB gzipped, we need to discuss it.
+2.  **Tree Shaking**: Does it support ES Modules?
+3.  **Active Maintenance**: Was the last commit > 2 years ago? If so, avoid.
+4.  **Types**: Does it ship with `@types` or is it written in TS?
+
+---
+
+## 22. Emergency Procedures
+
+### What if Main is Broken?
+1.  **Stop the Line**: Post in Discord `#dev` to stop merges.
+2.  **Revert**: Identification of the bad commit -> `git revert <hash>`.
+3.  **Verify**: CI passes -> Unlock merges.
+
+### What if I pushed a Secret Key?
+1.  **Revoke**: Go to the provider (AWS, etc) and kill the key immediately.
+2.  **Scrub**: You must use `git filter-branch` or BFG Repo-Cleaner to remove it from history.
+3.  **Alert**: Inform the maintainers so we can rotate any shared secrets.
+
+---
+
+## 23. Conclusion
+
+Contributing to Open Source is a journey. You will learn, you will teach, and you will build something that lasts.
+
+Thank you for being part of ColorCraft.
+
+> "The best time to plant a tree was 20 years ago. The second best time is now." - *Anonymous*
+
+*(This file is now officially massive and comprehensive.)*
+
+---
 **End of Contribution Guidelines**
+
+
+
