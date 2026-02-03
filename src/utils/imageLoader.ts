@@ -13,7 +13,8 @@ export const loadImage = (src: string): Promise<HTMLImageElement> => {
         img.crossOrigin = 'Anonymous';
         img.onload = () => resolve(img);
         img.onerror = (e) => reject(e);
-        img.src = src;
+        // Add cache buster
+        img.src = `${src}?t=${Date.now()}`;
     });
 };
 

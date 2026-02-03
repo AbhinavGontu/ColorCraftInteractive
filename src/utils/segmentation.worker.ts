@@ -19,10 +19,10 @@ interface SegmentationResult {
 }
 
 self.onmessage = (e: MessageEvent<SegmentationInput>) => {
-    const { width, height, edgeData, normalData } = e.data;
+    const { width, height, edgeData, normalData, colorData } = e.data;
 
     try {
-        const result = processValues(width, height, edgeData, normalData);
+        const result = processValues(width, height, edgeData, normalData, colorData);
         self.postMessage({ success: true, result });
     } catch (error) {
         self.postMessage({ success: false, error });
@@ -33,7 +33,8 @@ const processValues = (
     width: number,
     height: number,
     edgeData: Uint8ClampedArray,
-    normalData: Uint8ClampedArray
+    normalData: Uint8ClampedArray,
+    colorData: Uint8ClampedArray
 ): SegmentationResult => {
     const totalPixels = width * height;
     const visited = new Uint8Array(totalPixels); // 0 = unvisited, 1 = visited
@@ -67,6 +68,10 @@ const processValues = (
 
             let minX = x, maxX = x, minY = y, maxY = y;
             let count = 0;
+
+            // Accumulators for averages
+            let sumR = 0, sumG = 0, sumB = 0;
+            let sumNX = 0, sumNY = 0, sumNZ = 0;
 
             // Use Golden Angle approximation for distinct colors
             // Golden Angle ~ 137.5 degrees
@@ -115,6 +120,16 @@ const processValues = (
                 if (cy < minY) minY = cy;
                 if (cy > maxY) maxY = cy;
 
+                // Accumulate Color Data
+                sumR += colorData[currIdx * 4];
+                sumG += colorData[currIdx * 4 + 1];
+                sumB += colorData[currIdx * 4 + 2];
+
+                // Accumulate Normal Data
+                sumNX += normalData[currIdx * 4];
+                sumNY += normalData[currIdx * 4 + 1];
+                sumNZ += normalData[currIdx * 4 + 2];
+
                 const neighbors = [
                     { nx: cx + 1, ny: cy },
                     { nx: cx - 1, ny: cy },
@@ -151,21 +166,28 @@ const processValues = (
                 }
             }
 
-            if (count > 20) {
-                masks.set(regionId, {
-                    id: regionId,
-                    color,
-                    pixelCount: count,
-                    boundingBox: { minX, minY, maxX, maxY }
-                });
-            } else {
-                masks.set(regionId, {
-                    id: regionId,
-                    color,
-                    pixelCount: count,
-                    boundingBox: { minX, minY, maxX, maxY }
-                });
-            }
+            // Calculate Averages
+            // Avoid division by zero (though count always >= 1 here)
+            const safeCount = count > 0 ? count : 1;
+            const averageColor = {
+                r: Math.round(sumR / safeCount),
+                g: Math.round(sumG / safeCount),
+                b: Math.round(sumB / safeCount)
+            };
+            const averageNormal = {
+                x: Math.round(sumNX / safeCount),
+                y: Math.round(sumNY / safeCount),
+                z: Math.round(sumNZ / safeCount)
+            };
+
+            masks.set(regionId, {
+                id: regionId,
+                color,
+                pixelCount: count,
+                boundingBox: { minX, minY, maxX, maxY },
+                averageColor,
+                averageNormal
+            });
         }
     }
 

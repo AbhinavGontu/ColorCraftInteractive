@@ -16,6 +16,8 @@ export interface Mask {
     boundingBox: { minX: number; minY: number; maxX: number; maxY: number };
     pixelCount: number;
     color: string; // Random color for visualization
+    averageColor: { r: number; g: number; b: number };
+    averageNormal: { x: number; y: number; z: number };
 }
 
 export const IMAGE_SETS: ImageSet[] = [

@@ -12,7 +12,8 @@ export const Sidebar: React.FC = () => {
         applyColorToSelection,
         showAllMasks,
         toggleShowAllMasks,
-        clearSelection
+        clearSelection,
+        selectSimilar
     } = useAppStore();
 
     // Calculate selected pixels
@@ -53,7 +54,7 @@ export const Sidebar: React.FC = () => {
             {/* Selection Stats (Compact) */}
             <div className="p-4 border-b border-neutral-700">
                 <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-500 mb-2">Selection</h2>
-                <div className="flex items-center justify-between text-xs text-neutral-300">
+                <div className="flex items-center justify-between text-xs text-neutral-300 mb-3">
                     <div>
                         <span className="font-bold text-white">{selectedMaskIds.size}</span> regions
                     </div>
@@ -61,6 +62,32 @@ export const Sidebar: React.FC = () => {
                         <span className="font-bold text-white">{(totalSelectedPixels / 1000).toFixed(1)}k</span> px
                     </div>
                 </div>
+
+                <div className="mb-3">
+                    <div className="flex justify-between text-xs text-neutral-400 mb-1">
+                        <span>Group Sensitivity</span>
+                        <span>{useAppStore.getState().similaritySensitivity}%</span>
+                    </div>
+                    <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={useAppStore(s => s.similaritySensitivity)}
+                        onChange={(e) => useAppStore.getState().setSimilaritySensitivity(parseInt(e.target.value))}
+                        className="w-full h-1 bg-neutral-600 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                    />
+                </div>
+
+                <button
+                    onClick={() => {
+                        const id = Array.from(selectedMaskIds)[0];
+                        if (id) useAppStore.getState().selectSimilar(id);
+                    }}
+                    disabled={selectedMaskIds.size !== 1}
+                    className="w-full py-1.5 text-xs bg-blue-600/20 text-blue-400 border border-blue-500/30 rounded hover:bg-blue-600/30 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                    Select Similar Group
+                </button>
             </div>
 
             {/* Color Palette */}

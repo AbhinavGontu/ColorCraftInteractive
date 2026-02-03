@@ -41,6 +41,10 @@ interface AppState {
     removeColorFromSelection: () => void; // New
     clearAllColors: () => void; // New
     toggleShowAllMasks: () => void;
+    selectSimilar: (maskId: number) => void;
+
+    similaritySensitivity: number;
+    setSimilaritySensitivity: (val: number) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -123,4 +127,55 @@ export const useAppStore = create<AppState>((set) => ({
     clearAllColors: () => set({ maskColors: new Map() }),
 
     toggleShowAllMasks: () => set((state) => ({ showAllMasks: !state.showAllMasks })),
+
+    similaritySensitivity: 50, // 0-100, default 50
+    setSimilaritySensitivity: (val: number) => set({ similaritySensitivity: val }),
+
+    selectSimilar: (maskId: number) => set((state) => {
+        const targetMask = state.masks.get(maskId);
+        if (!targetMask) return state;
+
+        const newSelection = new Set(state.selectedMaskIds);
+        const { averageColor: c1, averageNormal: n1 } = targetMask;
+
+        // Dynamic Thresholds based on Sensitivity (0-100)
+        // Sensitivity 50 = 1.0 multiplier (Base values)
+        // Sensitivity 100 = 0.2 multiplier (Very strict)
+        // Sensitivity 0 = 2.0 multiplier (Very loose)
+        const factor = Math.max(0.1, 2.0 - (state.similaritySensitivity / 50));
+
+        const BASE_COLOR_THRESHOLD = 25;
+        const BASE_NORMAL_THRESHOLD = 15;
+
+        const COLOR_THRESHOLD = BASE_COLOR_THRESHOLD * factor;
+        const NORMAL_THRESHOLD = BASE_NORMAL_THRESHOLD * factor;
+
+        // Iterate all masks
+        state.masks.forEach((mask) => {
+            if (mask.id === maskId) return; // Skip self
+
+            const c2 = mask.averageColor;
+            const n2 = mask.averageNormal;
+
+            // Euclidean distance for Color
+            const distC = Math.sqrt(
+                Math.pow(c1.r - c2.r, 2) +
+                Math.pow(c1.g - c2.g, 2) +
+                Math.pow(c1.b - c2.b, 2)
+            );
+
+            // Euclidean distance for Normal
+            const distN = Math.sqrt(
+                Math.pow(n1.x - n2.x, 2) +
+                Math.pow(n1.y - n2.y, 2) +
+                Math.pow(n1.z - n2.z, 2)
+            );
+
+            if (distC < COLOR_THRESHOLD && distN < NORMAL_THRESHOLD) {
+                newSelection.add(mask.id);
+            }
+        });
+
+        return { selectedMaskIds: newSelection };
+    }),
 }));

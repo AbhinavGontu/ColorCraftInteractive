@@ -20,6 +20,7 @@ export const ImageViewer: React.FC = () => {
         masks,
         // Zoom/Pan State
         zoom,
+        setZoom, // Added setZoom
         pan,
         setPan
     } = useAppStore();
@@ -61,6 +62,7 @@ export const ImageViewer: React.FC = () => {
 
                 const edgeData = getImageData(images.edge).data;
                 const normalData = getImageData(images.normals).data;
+                const colorData = getImageData(images.cleaned).data;
 
                 worker = new Worker(new URL('../utils/segmentation.worker.ts', import.meta.url), { type: 'module' });
 
@@ -80,7 +82,8 @@ export const ImageViewer: React.FC = () => {
                     width: w,
                     height: h,
                     edgeData,
-                    normalData
+                    normalData,
+                    colorData
                 });
 
             } catch (e) {
@@ -209,6 +212,15 @@ export const ImageViewer: React.FC = () => {
 
     // --- Interaction Handlers ---
 
+    // 3. Zoom Logic (Wheel)
+    const handleWheel = (e: React.WheelEvent) => {
+        // e.preventDefault(); // React's SyntheticEvent might complain, but worth a try (actually doesn't work well on passive defaults)
+        // Better logic: accumulate delta
+        const delta = -e.deltaY * 0.002;
+        const newZoom = Math.min(Math.max(zoom + delta, 0.1), 5.0);
+        setZoom(newZoom);
+    };
+
     // 1. Pan Logic (Space + Drag)
     const handleMouseDown = (e: React.MouseEvent) => {
         if (e.button === 1 || (e.button === 0 && e.shiftKey)) { // Middle click OR Shift+Left Click (User asked for Space, but Shift is easier to code without global listeners)
@@ -279,6 +291,7 @@ export const ImageViewer: React.FC = () => {
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
+            onWheel={handleWheel}
         >
             {isLoading && (
                 <div className="absolute inset-0 flex items-center justify-center z-50 bg-neutral-900/80 text-white flex-col gap-2">
