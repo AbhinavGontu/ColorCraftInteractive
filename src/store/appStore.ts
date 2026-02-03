@@ -22,6 +22,12 @@ interface AppState {
     maskColors: Map<number, string>; // maskId -> hex color
     showAllMasks: boolean;
 
+    // Viewport State
+    zoom: number;
+    pan: { x: number, y: number };
+    setZoom: (zoom: number) => void;
+    setPan: (x: number, y: number) => void;
+
     // Actions
     setParameters: (setId: string) => void;
     setLoading: (loading: boolean, status?: string) => void;
@@ -32,6 +38,8 @@ interface AppState {
     clearSelection: () => void;
 
     applyColorToSelection: (colorHex: string) => void;
+    removeColorFromSelection: () => void; // New
+    clearAllColors: () => void; // New
     toggleShowAllMasks: () => void;
 }
 
@@ -51,6 +59,12 @@ export const useAppStore = create<AppState>((set) => ({
     maskColors: new Map(),
     showAllMasks: false,
 
+    zoom: 1,
+    pan: { x: 0, y: 0 },
+
+    setZoom: (zoom) => set({ zoom }),
+    setPan: (x, y) => set({ pan: { x, y } }),
+
     setParameters: (setId) => set((state) => {
         const setParams = IMAGE_SETS.find(s => s.id === setId);
         if (!setParams) return state;
@@ -62,7 +76,9 @@ export const useAppStore = create<AppState>((set) => ({
             masks: new Map(),
             selectedMaskIds: new Set(),
             maskColors: new Map(),
-            processingStatus: 'idle'
+            processingStatus: 'idle',
+            zoom: 1, // Reset Zoom
+            pan: { x: 0, y: 0 } // Reset Pan
         };
     }),
 
@@ -95,6 +111,16 @@ export const useAppStore = create<AppState>((set) => ({
         });
         return { maskColors: newColors };
     }),
+
+    removeColorFromSelection: () => set((state) => {
+        const newColors = new Map(state.maskColors);
+        state.selectedMaskIds.forEach(id => {
+            newColors.delete(id);
+        });
+        return { maskColors: newColors };
+    }),
+
+    clearAllColors: () => set({ maskColors: new Map() }),
 
     toggleShowAllMasks: () => set((state) => ({ showAllMasks: !state.showAllMasks })),
 }));

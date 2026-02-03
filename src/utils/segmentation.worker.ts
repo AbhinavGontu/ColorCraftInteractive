@@ -169,6 +169,53 @@ const processValues = (
         }
     }
 
+    // 5. Post-Processing: Gap Filling (Dilation)
+    // Iterate all pixels. If a pixel is ID 0 (Edge) but has a valid neighbor, assign it to that neighbor.
+    // This "thickens" the masks to cover the anti-aliased edges.
+    const newMaskMap = new Int32Array(maskMap); // Copy to avoid reading/writing same buffer race
+    let updates = 0;
+
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            const idx = y * width + x;
+            if (maskMap[idx] !== 0) continue; // Already has a mask
+
+            // Check neighbors for a non-zero voting
+            const neighborCounts: Record<number, number> = {};
+            let maxCount = 0;
+            let bestId = 0;
+
+            // Check 8-neighbors for better coverage
+            for (let dy = -1; dy <= 1; dy++) {
+                for (let dx = -1; dx <= 1; dx++) {
+                    if (dx === 0 && dy === 0) continue;
+                    const nx = x + dx;
+                    const ny = y + dy;
+                    if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+                        const nId = maskMap[ny * width + nx];
+                        if (nId > 0) {
+                            neighborCounts[nId] = (neighborCounts[nId] || 0) + 1;
+                            if (neighborCounts[nId] > maxCount) {
+                                maxCount = neighborCounts[nId];
+                                bestId = nId;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (bestId > 0) {
+                newMaskMap[idx] = bestId;
+                updates++;
+            }
+        }
+    }
+
+    // Apple the updates
+    if (updates > 0) {
+        maskMap.set(newMaskMap);
+    }
+
     return {
         width,
         height,
