@@ -136,16 +136,21 @@ export const useAppStore = create<AppState>((set) => ({
         if (!targetMask) return state;
 
         const newSelection = new Set(state.selectedMaskIds);
-        const { averageColor: c1, averageNormal: n1 } = targetMask;
+        const { averageColor: c1, averageNormal: n1, boundingBox: b1, pixelCount: p1 } = targetMask;
+
+        // Geometric Properties
+        const w1 = b1.maxX - b1.minX;
+        const h1 = b1.maxY - b1.minY;
+        const ratio1 = w1 / (h1 || 1);
 
         // Dynamic Thresholds based on Sensitivity (0-100)
         // Sensitivity 50 = 1.0 multiplier (Base values)
         // Sensitivity 100 = 0.2 multiplier (Very strict)
-        // Sensitivity 0 = 2.0 multiplier (Very loose)
         const factor = Math.max(0.1, 2.0 - (state.similaritySensitivity / 50));
 
-        const BASE_COLOR_THRESHOLD = 25;
-        const BASE_NORMAL_THRESHOLD = 15;
+        // IMPROVED: Relax Color, Enforce Geometry
+        const BASE_COLOR_THRESHOLD = 60; // Was 25. Much looser to catch shadows.
+        const BASE_NORMAL_THRESHOLD = 20; // Was 15.
 
         const COLOR_THRESHOLD = BASE_COLOR_THRESHOLD * factor;
         const NORMAL_THRESHOLD = BASE_NORMAL_THRESHOLD * factor;
@@ -154,24 +159,42 @@ export const useAppStore = create<AppState>((set) => ({
         state.masks.forEach((mask) => {
             if (mask.id === maskId) return; // Skip self
 
-            const c2 = mask.averageColor;
-            const n2 = mask.averageNormal;
+            // 1. Geometric Filter (Fastest First)
+            const p2 = mask.pixelCount;
 
-            // Euclidean distance for Color
+            // Size Check: Must be within 50% - 200% of target size
+            // Windows are rarely 3x larger or smaller than each other
+            if (p2 < p1 * 0.5 || p2 > p1 * 2.0) return;
+
+            const b2 = mask.boundingBox;
+            const w2 = b2.maxX - b2.minX;
+            const h2 = b2.maxY - b2.minY;
+            const ratio2 = w2 / (h2 || 1);
+
+            // Aspect Ratio Check: Must be reasonably similar (e.g., both rectangular)
+            // Allow 40% variance
+            const ratioDiff = Math.abs(ratio1 - ratio2) / ratio1;
+            if (ratioDiff > 0.4) return;
+
+
+            // 2. Normal Filter (Strict) - Surfaces must face the same way
+            const n2 = mask.averageNormal;
+            const distN = Math.sqrt(
+                Math.pow(n1.x - n2.x, 2) +
+                Math.pow(n1.y - n2.y, 2) +
+                Math.pow(n1.z - n2.z, 2)
+            );
+            if (distN > NORMAL_THRESHOLD) return;
+
+            // 3. Color Filter (Relaxed)
+            const c2 = mask.averageColor;
             const distC = Math.sqrt(
                 Math.pow(c1.r - c2.r, 2) +
                 Math.pow(c1.g - c2.g, 2) +
                 Math.pow(c1.b - c2.b, 2)
             );
 
-            // Euclidean distance for Normal
-            const distN = Math.sqrt(
-                Math.pow(n1.x - n2.x, 2) +
-                Math.pow(n1.y - n2.y, 2) +
-                Math.pow(n1.z - n2.z, 2)
-            );
-
-            if (distC < COLOR_THRESHOLD && distN < NORMAL_THRESHOLD) {
+            if (distC < COLOR_THRESHOLD) {
                 newSelection.add(mask.id);
             }
         });

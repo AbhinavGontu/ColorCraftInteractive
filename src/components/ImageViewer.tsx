@@ -28,6 +28,7 @@ export const ImageViewer: React.FC = () => {
     const containerRef = useRef<HTMLDivElement>(null);
     const baseCanvasRef = useRef<HTMLCanvasElement>(null);
     const paintCanvasRef = useRef<HTMLCanvasElement>(null);
+    const edgesCanvasRef = useRef<HTMLCanvasElement>(null);
     const highlightCanvasRef = useRef<HTMLCanvasElement>(null);
     const masksCanvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -55,6 +56,14 @@ export const ImageViewer: React.FC = () => {
                     baseCanvasRef.current!.width = w;
                     baseCanvasRef.current!.height = h;
                     baseCtx.drawImage(images.cleaned, 0, 0);
+                }
+
+                // Draw Edge Overlay
+                const edgesCtx = edgesCanvasRef.current?.getContext('2d');
+                if (edgesCtx) {
+                    edgesCanvasRef.current!.width = w;
+                    edgesCanvasRef.current!.height = h;
+                    edgesCtx.drawImage(images.edge, 0, 0);
                 }
 
                 // Process masks via Worker
@@ -102,7 +111,7 @@ export const ImageViewer: React.FC = () => {
 
     // Handle canvas resizing
     useEffect(() => {
-        [paintCanvasRef, highlightCanvasRef, masksCanvasRef].forEach(ref => {
+        [paintCanvasRef, edgesCanvasRef, highlightCanvasRef, masksCanvasRef].forEach(ref => {
             if (ref.current && width > 0 && height > 0) {
                 ref.current.width = width;
                 ref.current.height = height;
@@ -136,10 +145,25 @@ export const ImageViewer: React.FC = () => {
             if (maskId > 0 && colorCache[maskId]) {
                 const [r, g, b] = colorCache[maskId];
                 const idx = i * 4;
+
+                let alpha = 217; // Default (Hard Paint)
+
+                // Anti-Aliasing: Check neighbors
+                // If any neighbor is NOT this mask, it's an edge -> Soften it.
+                // We trust JS engine to handle out-of-bounds as undefined != maskId
+                if (
+                    maskMap[i - 1] !== maskId ||       // Left
+                    maskMap[i + 1] !== maskId ||       // Right
+                    maskMap[i - width] !== maskId ||   // Top
+                    maskMap[i + width] !== maskId      // Bottom
+                ) {
+                    alpha = 140; // Soft Edge
+                }
+
                 data[idx] = r;
                 data[idx + 1] = g;
                 data[idx + 2] = b;
-                data[idx + 3] = 217;
+                data[idx + 3] = alpha;
             }
         }
         ctx.putImageData(imgData, 0, 0);
@@ -202,7 +226,7 @@ export const ImageViewer: React.FC = () => {
                     data[idx] = r;
                     data[idx + 1] = g;
                     data[idx + 2] = b;
-                    data[idx + 3] = 255;
+                    data[idx + 3] = 180;
                 }
             }
         }
@@ -304,11 +328,15 @@ export const ImageViewer: React.FC = () => {
 
                 <canvas ref={baseCanvasRef} className="block max-h-[85vh] max-w-full" />
                 <canvas ref={paintCanvasRef} className="absolute inset-0 w-full h-full mix-blend-multiply pointer-events-none transition-opacity duration-500" />
+
+                {/* Edge Map Overlay (Crisp Definition) */}
+                <canvas ref={edgesCanvasRef} className="absolute inset-0 w-full h-full mix-blend-multiply pointer-events-none opacity-60" />
+
                 <canvas ref={highlightCanvasRef}
                     className="absolute inset-0 w-full h-full pointer-events-auto cursor-crosshair"
                     onClick={handleClick}
                 />
-                <canvas ref={masksCanvasRef} className={clsx("absolute inset-0 w-full h-full pointer-events-none transition-opacity duration-300", showAllMasks ? 'opacity-100' : 'opacity-0')} />
+                <canvas ref={masksCanvasRef} className={clsx("absolute inset-0 w-full h-full pointer-events-none transition-opacity duration-300 mix-blend-multiply", showAllMasks ? 'opacity-100' : 'opacity-0')} />
             </div>
 
             {/* Hint overlay */}

@@ -78,9 +78,9 @@ const processValues = (
             // Golden Angle ~ 137.5 degrees
             // Hue = (regionId * 137.508) % 360
             const hue = (regionId * 137.508) % 360;
-            // High saturation and lightness for vibrant look
-            const saturation = 70 + (regionId % 30); // 70-100%
-            const lightness = 45 + (regionId % 20);  // 45-65%
+            // Muted, professional colors (Pastel/Neutral)
+            const saturation = 20 + (regionId % 15); // 20-35%
+            const lightness = 55 + (regionId % 10);  // 55-65% (Middle ground)
 
             // Convert HSL to Hex
             const h = hue / 360;

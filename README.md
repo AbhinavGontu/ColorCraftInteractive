@@ -1,10 +1,6 @@
 # 🎨 ColorCraft: Interactive Paint Visualizer
-**Professional Architectural Color Visualization in the Browser**
+**Architectural Color Visualization in the Browser**
 
-[![Vite](https://img.shields.io/badge/Vite-B73BFE?style=for-the-badge&logo=vite&logoColor=FFD62E)](https://vitejs.dev/)
-[![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 
 ColorCraft is a high-performance, client-side tool designed for architects and homeowners to visualize exterior paint colors. By leveraging **Web Workers** for heavy computation and **Vector Analysis** for region identification, it provides a smooth, "smart" painting experience entirely in the web browser.
 
