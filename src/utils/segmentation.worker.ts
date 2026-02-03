@@ -9,6 +9,7 @@ interface SegmentationInput {
     height: number;
     edgeData: Uint8ClampedArray;
     normalData: Uint8ClampedArray;
+    colorData: Uint8ClampedArray;
 }
 
 interface SegmentationResult {

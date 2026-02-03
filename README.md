@@ -13,7 +13,7 @@ A client-side architectural visualization tool that allows users to segment and 
     ```bash
     npm run dev
     ```
-    Access at `http://localhost:5173`.
+    access at `http://localhost:3000`.
 
 ## 🏗️ Requirements
 - Node.js v16+

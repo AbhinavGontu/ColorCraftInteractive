@@ -1,7 +1,6 @@
 import type { ImageSet } from "../types";
 
 export interface LoadedImages {
-    original: HTMLImageElement;
     cleaned: HTMLImageElement;
     edge: HTMLImageElement;
     normals: HTMLImageElement;
@@ -11,6 +10,7 @@ export const loadImage = (src: string): Promise<HTMLImageElement> => {
     return new Promise((resolve, reject) => {
         const img = new Image();
         img.crossOrigin = 'Anonymous';
+        console.log(`[ImageLoader] Loading: ${src}`); // Debug Log
         img.onload = () => resolve(img);
         img.onerror = (e) => reject(e);
         // Add cache buster
@@ -19,8 +19,7 @@ export const loadImage = (src: string): Promise<HTMLImageElement> => {
 };
 
 export const loadDataset = async (set: ImageSet): Promise<LoadedImages> => {
-    const [original, cleaned, edge, normals] = await Promise.all([
-        loadImage(set.original),
+    const [cleaned, edge, normals] = await Promise.all([
         loadImage(set.cleaned),
         loadImage(set.edge),
         loadImage(set.normals)
@@ -33,7 +32,7 @@ export const loadDataset = async (set: ImageSet): Promise<LoadedImages> => {
         throw new Error(`Dimension mismatch: Cleaned(${cleaned.width}x${cleaned.height}) vs Edge(${edge.width}x${edge.height}) vs Normals(${normals.width}x${normals.height})`);
     }
 
-    return { original, cleaned, edge, normals };
+    return { cleaned, edge, normals };
 };
 
 export const getImageData = (img: HTMLImageElement, width?: number, height?: number): ImageData => {

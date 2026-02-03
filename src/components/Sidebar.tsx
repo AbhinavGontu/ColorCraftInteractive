@@ -12,8 +12,6 @@ export const Sidebar: React.FC = () => {
         applyColorToSelection,
         showAllMasks,
         toggleShowAllMasks,
-        clearSelection,
-        selectSimilar
     } = useAppStore();
 
     // Calculate selected pixels

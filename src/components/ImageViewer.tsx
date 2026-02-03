@@ -280,14 +280,7 @@ export const ImageViewer: React.FC = () => {
                 "relative flex-1 bg-neutral-900 flex items-center justify-center overflow-hidden p-4",
                 isDragging ? "cursor-grabbing" : "cursor-default"
             )}
-            onMouseDown={(e) => {
-                // Middle click (1) or Alt+Click for Pan
-                if (e.button === 1 || e.altKey) {
-                    setIsDragging(true);
-                    setLastMousePos({ x: e.clientX, y: e.clientY });
-                    e.preventDefault();
-                }
-            }}
+            onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
