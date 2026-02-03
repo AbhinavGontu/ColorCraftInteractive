@@ -36,23 +36,6 @@ npm run dev
 ```
 The app will be available at: **`http://localhost:3000`**
 
----
-
-## 📦 Deployment
-
-This project is optimized for **Vercel**. 
-1. Push your code to GitHub.
-2. Connect the repo to Vercel.
-3. It's live! (Port and build settings are automatically handled).
-
----
-
-## 🏗️ Requirements
-- **Node.js**: v18+ (Recommended)
-- **Browser**: Modern Chrome, Firefox, or Safari (Requires Web Worker & Canvas support)
-
----
-
 ## 🔧 troubleshooting
 - **Image Mismatch**: If adding new images, ensure the `edge.png`, `normals.png`, and `cleaned.png` files have identical dimensions.
 - **Cache**: If images don't update after replacement, use `Shift + F5` for a hard refresh.
