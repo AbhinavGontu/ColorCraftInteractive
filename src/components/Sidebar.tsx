@@ -31,21 +31,24 @@ export const Sidebar: React.FC = () => {
             {/* Image Set Selection */}
             <div className="p-4 border-b border-neutral-700 space-y-3">
                 <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-500">Building Model</h2>
-                <div className="flex gap-2">
-                    {IMAGE_SETS.map(set => (
-                        <button
-                            key={set.id}
-                            onClick={() => setParameters(set.id)}
-                            className={clsx(
-                                "w-8 h-8 rounded border text-xs font-medium transition-colors flex items-center justify-center",
-                                currentSetId === set.id
-                                    ? "bg-blue-600 border-blue-500 text-white"
-                                    : "bg-neutral-700 border-neutral-600 text-neutral-300 hover:bg-neutral-600"
-                            )}
-                        >
-                            {set.id}
-                        </button>
-                    ))}
+                <div className="relative">
+                    <select
+                        value={currentSetId}
+                        onChange={(e) => setParameters(e.target.value)}
+                        className="w-full bg-neutral-700 border border-neutral-600 text-white text-sm rounded px-3 py-2 appearance-none focus:outline-none focus:border-blue-500 transition-colors"
+                    >
+                        {IMAGE_SETS.map(set => (
+                            <option key={set.id} value={set.id}>
+                                Model {set.id}
+                            </option>
+                        ))}
+                    </select>
+                    {/* Custom Arrow Icon */}
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-neutral-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
                 </div>
             </div>
 

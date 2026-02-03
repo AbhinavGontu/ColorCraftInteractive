@@ -28,7 +28,7 @@ export const ImageViewer: React.FC = () => {
     const containerRef = useRef<HTMLDivElement>(null);
     const baseCanvasRef = useRef<HTMLCanvasElement>(null);
     const paintCanvasRef = useRef<HTMLCanvasElement>(null);
-    const edgesCanvasRef = useRef<HTMLCanvasElement>(null);
+    // const edgesCanvasRef = useRef<HTMLCanvasElement>(null); // Removed per user request
     const highlightCanvasRef = useRef<HTMLCanvasElement>(null);
     const masksCanvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -58,13 +58,7 @@ export const ImageViewer: React.FC = () => {
                     baseCtx.drawImage(images.cleaned, 0, 0);
                 }
 
-                // Draw Edge Overlay
-                const edgesCtx = edgesCanvasRef.current?.getContext('2d');
-                if (edgesCtx) {
-                    edgesCanvasRef.current!.width = w;
-                    edgesCanvasRef.current!.height = h;
-                    edgesCtx.drawImage(images.edge, 0, 0);
-                }
+
 
                 // Process masks via Worker
                 setLoading(true, 'generating_masks');
@@ -111,7 +105,7 @@ export const ImageViewer: React.FC = () => {
 
     // Handle canvas resizing
     useEffect(() => {
-        [paintCanvasRef, edgesCanvasRef, highlightCanvasRef, masksCanvasRef].forEach(ref => {
+        [paintCanvasRef, highlightCanvasRef, masksCanvasRef].forEach(ref => {
             if (ref.current && width > 0 && height > 0) {
                 ref.current.width = width;
                 ref.current.height = height;
@@ -328,9 +322,6 @@ export const ImageViewer: React.FC = () => {
 
                 <canvas ref={baseCanvasRef} className="block max-h-[85vh] max-w-full" />
                 <canvas ref={paintCanvasRef} className="absolute inset-0 w-full h-full mix-blend-multiply pointer-events-none transition-opacity duration-500" />
-
-                {/* Edge Map Overlay (Crisp Definition) */}
-                <canvas ref={edgesCanvasRef} className="absolute inset-0 w-full h-full mix-blend-multiply pointer-events-none opacity-60" />
 
                 <canvas ref={highlightCanvasRef}
                     className="absolute inset-0 w-full h-full pointer-events-auto cursor-crosshair"
