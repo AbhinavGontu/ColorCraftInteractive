@@ -10,11 +10,11 @@ export const loadImage = (src: string): Promise<HTMLImageElement> => {
     return new Promise((resolve, reject) => {
         const img = new Image();
         img.crossOrigin = 'Anonymous';
-        console.log(`[ImageLoader] Loading: ${src}`); // Debug Log
+        console.log(`[ImageLoader] Loading: ${src.substring(0, 50)}...`); // Debug Log (truncated)
         img.onload = () => resolve(img);
         img.onerror = (e) => reject(e);
-        // Add cache buster
-        img.src = `${src}?t=${Date.now()}`;
+        // Add cache buster ONLY if not a data URL
+        img.src = src.startsWith('data:') ? src : `${src}?t=${Date.now()}`;
     });
 };
 

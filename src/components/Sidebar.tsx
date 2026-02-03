@@ -31,25 +31,89 @@ export const Sidebar: React.FC = () => {
             {/* Image Set Selection */}
             <div className="p-4 border-b border-neutral-700 space-y-3">
                 <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-500">Building Model</h2>
-                <div className="relative">
-                    <select
-                        value={currentSetId}
-                        onChange={(e) => setParameters(e.target.value)}
-                        className="w-full bg-neutral-700 border border-neutral-600 text-white text-sm rounded px-3 py-2 appearance-none focus:outline-none focus:border-blue-500 transition-colors"
-                    >
-                        {IMAGE_SETS.map(set => (
-                            <option key={set.id} value={set.id}>
-                                Model {set.id}
-                            </option>
-                        ))}
-                    </select>
-                    {/* Custom Arrow Icon */}
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-neutral-400">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
+                <div className="flex gap-2">
+                    <div className="relative flex-1">
+                        <select
+                            value={currentSetId}
+                            onChange={(e) => setParameters(e.target.value)}
+                            className="w-full bg-neutral-700 border border-neutral-600 text-white text-sm rounded px-3 py-2 appearance-none focus:outline-none focus:border-blue-500 transition-colors"
+                        >
+                            {useAppStore(s => s.availableSets).map(set => (
+                                <option key={set.id} value={set.id}>
+                                    {set.id.startsWith('custom-') ? `Custom ${set.id.split('-')[1]}` : `Model ${set.id}`}
+                                </option>
+                            ))}
+                        </select>
+                        {/* Custom Arrow Icon */}
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-neutral-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
                     </div>
+                    {/* Upload Button */}
+                    <button
+                        onClick={() => document.getElementById('upload-trigger')?.click()}
+                        className="p-2 bg-neutral-700 border border-neutral-600 rounded hover:bg-neutral-600 text-neutral-300"
+                        title="Upload Custom Model (Cleaned, Edge, Normals)"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                        </svg>
+                    </button>
                 </div>
+                {/* Hidden File Input for Custom Upload */}
+                <input
+                    id="upload-trigger"
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                        const files = e.target.files;
+                        if (!files || files.length < 3) {
+                            alert('Please upload 3 files: cleaned.png, edge.png, and normals.png');
+                            return;
+                        }
+
+                        const fileArray = Array.from(files);
+                        const cleaned = fileArray.find(f => f.name.includes('cleaned'));
+                        const edge = fileArray.find(f => f.name.includes('edge'));
+                        const normals = fileArray.find(f => f.name.includes('normals'));
+
+                        if (!cleaned || !edge || !normals) {
+                            alert('Could not identify files. Please name them containing "cleaned", "edge", and "normals".');
+                            return;
+                        }
+
+                        // Helper to read file to DataURL
+                        const readFile = (file: File): Promise<string> => {
+                            return new Promise((resolve) => {
+                                const reader = new FileReader();
+                                reader.onload = (ev) => resolve(ev.target?.result as string);
+                                reader.readAsDataURL(file);
+                            });
+                        };
+
+                        const [cleanedUrl, edgeUrl, normalsUrl] = await Promise.all([
+                            readFile(cleaned),
+                            readFile(edge),
+                            readFile(normals)
+                        ]);
+
+                        const newId = `custom-${Date.now()}`;
+                        const newSet = {
+                            id: newId,
+                            original: cleanedUrl, // Use cleaned as original if original not present, or just use cleaned
+                            cleaned: cleanedUrl,
+                            edge: edgeUrl,
+                            normals: normalsUrl
+                        };
+
+                        useAppStore.getState().addCustomSet(newSet);
+                        useAppStore.getState().setParameters(newId);
+                    }}
+                />
             </div>
 
             {/* Selection Stats (Compact) */}

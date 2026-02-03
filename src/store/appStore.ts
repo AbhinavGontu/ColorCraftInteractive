@@ -11,6 +11,7 @@ interface AppState {
     processingStatus: string; // 'idle' | 'loading_images' | 'generating_masks' | 'ready'
 
     // Data
+    availableSets: ImageSet[]; // Dynamic list of sets
     // We store the mask map (pixel -> maskId) as a Int32Array for performance and to support >65k masks
     maskMap: Int32Array | null;
     width: number;
@@ -29,6 +30,7 @@ interface AppState {
     setPan: (x: number, y: number) => void;
 
     // Actions
+    addCustomSet: (set: ImageSet) => void;
     setParameters: (setId: string) => void;
     setLoading: (loading: boolean, status?: string) => void;
     setMaskData: (width: number, height: number, maskMap: Int32Array, masks: Map<number, Mask>) => void;
@@ -50,6 +52,7 @@ interface AppState {
 export const useAppStore = create<AppState>((set) => ({
     currentSetId: '1',
     currentSet: IMAGE_SETS[0],
+    availableSets: [...IMAGE_SETS], // Initialize with default imported sets
 
     isLoading: false,
     processingStatus: 'idle',
@@ -70,7 +73,8 @@ export const useAppStore = create<AppState>((set) => ({
     setPan: (x, y) => set({ pan: { x, y } }),
 
     setParameters: (setId) => set((state) => {
-        const setParams = IMAGE_SETS.find(s => s.id === setId);
+        // Look up in our dynamic list, not the static one
+        const setParams = state.availableSets.find(s => s.id === setId);
         if (!setParams) return state;
         return {
             currentSetId: setId,
@@ -85,6 +89,10 @@ export const useAppStore = create<AppState>((set) => ({
             pan: { x: 0, y: 0 } // Reset Pan
         };
     }),
+
+    addCustomSet: (newSet: ImageSet) => set((state) => ({
+        availableSets: [...state.availableSets, newSet]
+    })),
 
     setLoading: (loading, status) => set({ isLoading: loading, ...(status && { processingStatus: status }) }),
 
