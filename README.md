@@ -1,41 +1,62 @@
-# ColorCraft: Interactive Paint Visualizer
+# 🎨 ColorCraft: Interactive Paint Visualizer
+**Professional Architectural Color Visualization in the Browser**
 
-A client-side architectural visualization tool that allows users to segment and paint building facades in the browser.
+[![Vite](https://img.shields.io/badge/Vite-B73BFE?style=for-the-badge&logo=vite&logoColor=FFD62E)](https://vitejs.dev/)
+[![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 
-## 🚀 Getting Started
+ColorCraft is a high-performance, client-side tool designed for architects and homeowners to visualize exterior paint colors. By leveraging **Web Workers** for heavy computation and **Vector Analysis** for region identification, it provides a smooth, "smart" painting experience entirely in the web browser.
 
-1.  **Install Dependencies**:
-    ```bash
-    npm install
-    ```
+---
 
-2.  **Start Development Server**:
-    ```bash
-    npm run dev
-    ```
-    access at `http://localhost:3000`.
+## 🚀 Key Features
+
+*   **⚡ Non-Blocking Performance**: Uses specialized Web Workers to process millions of pixels without freezing the UI.
+*   **🧠 Smart Segmentation**: Automatically identifies walls, windows, and trim using Edge Mapping and 3D Surface Normals.
+*   **✨ Smart Grouping**: Select one window frame, and instantly select all similar windows across the entire building facade.
+*   **🎨 Realistic Blending**: Uses `multiply` blending modes to ensure paint looks like it's soaked into the texture of the brick or wood.
+*   **🔍 Interactive Viewport**: Silky-smooth zoom and pan controls optimized for large architectural images.
+
+---
+
+## 📖 Documentation (Source of Truth)
+
+For a deep dive into the math, architecture, and code, please refer to:
+👉 **[MASTER_PROJECT_DOCUMENTATION.md](file:///Users/abhi/.gemini/antigravity/brain/d866e71a-3161-4eb2-903b-df1bb856ce06/MASTER_PROJECT_DOCUMENTATION.md)**
+
+---
+
+## 🛠️ Getting Started
+
+### 1. Install Dependencies
+```bash
+npm install
+```
+
+### 2. Start Development
+```bash
+npm run dev
+```
+The app will be available at: **`http://localhost:3000`**
+
+---
+
+## 📦 Deployment
+
+This project is optimized for **Vercel**. 
+1. Push your code to GitHub.
+2. Connect the repo to Vercel.
+3. It's live! (Port and build settings are automatically handled).
+
+---
 
 ## 🏗️ Requirements
-- Node.js v16+
+- **Node.js**: v18+ (Recommended)
+- **Browser**: Modern Chrome, Firefox, or Safari (Requires Web Worker & Canvas support)
 
-## 📚 Features
-- **Smart Segmentation**: Automatically detects regions (walls, windows) using edge & normal maps.
-- **Smart Grouping**: Select one window, and automatically select all similar ones.
-- **Interactive Painting**: Real-time color application with texture blending.
-- **Zoom & Pan**: Scroll to zoom, drag to pan.
+---
 
-## 🛠️ Configuration
-
-### Adding Custom Images
-Add new images to `public/images/MyBuilding/` and register them in `src/types.ts`:
-- `original.png`: The main display image.
-- `cleaned.png`: Optional shadow-free version.
-- `edge.png`: Edge map (White background, black lines).
-- `normals.png`: Normal map for 3D orientation.
-
-### Customizing Colors
-Edit `src/types.ts` to add or remove paint colors from the `PAINT_COLORS` array.
-
-## 🔧 Troubleshooting
-- **Browser Caching**: If images don't update (e.g., Set 5 vs 6), try **Shift + Refresh**. The app now uses cache-busting, but strict browser caches can persist.
-- **Selection Issues**: Use the "Group Sensitivity" slider in the sidebar to tune how strict the smart selection is.
+## 🔧 troubleshooting
+- **Image Mismatch**: If adding new images, ensure the `edge.png`, `normals.png`, and `cleaned.png` files have identical dimensions.
+- **Cache**: If images don't update after replacement, use `Shift + F5` for a hard refresh.
