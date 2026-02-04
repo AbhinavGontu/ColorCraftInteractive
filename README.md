@@ -1,10 +1,9 @@
 # ColorCraft: Interactive Paint Visualizer
 
-**The Professional Architectural Visualization Tool for the Web.**
+**The Architectural Visualization Tool for the Web.**
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Control](https://img.shields.io/badge/control-local-green.svg)
-![Technology](https://img.shields.io/badge/tech-React%20%7C%20TypeScript%20%7C%20Vite-blueviolet.svg)
+[![Vercel App](https://img.shields.io/badge/Vercel-App-black.svg?logo=vercel)](https://color-craft-interactive.vercel.app/)
+
 
 ---
 
@@ -85,25 +84,3 @@
 
 ---
 
-## ☁️ Deployment
-
-This project is configured for **Vercel**.
-
-1.  Push your changes to the `main` or `master` branch.
-2.  Import the repository in Vercel.
-3.  Vercel will detect `vite.config.ts` and deploy automatically.
-4.  **Note**: The `vercel.json` ensures correctly routing for the Single Page App (SPA).
-
----
-
-## 📚 Deep Dive Documentation
-
-For a comprehensive understanding of the math and logic:
-
-*   **[Full Stack Walkthrough](file:///Users/abhi/.gemini/antigravity/brain/d866e71a-3161-4eb2-903b-df1bb856ce06/FULL_STACK_WALKTHROUGH.md)**: Traces a single user action through the entire codebase.
-*   **[Master Documentation](file:///Users/abhi/.gemini/antigravity/brain/d866e71a-3161-4eb2-903b-df1bb856ce06/MASTER_PROJECT_DOCUMENTATION.md)**: The complete technical manual.
-
----
-
-**Author**: Abhinav Gontu
-**License**: MIT
