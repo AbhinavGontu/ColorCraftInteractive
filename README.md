@@ -2,7 +2,7 @@
 
 **The Architectural Visualization Tool for the Web.**
 
-[![Vercel App](https://img.shields.io/badge/Vercel-App-black.svg?logo=vercel)](https://color-craft-interactive.vercel.app/)
+<a href="https://color-craft-interactive.vercel.app/" target="_blank"><img src="https://img.shields.io/badge/Vercel-App-black.svg?logo=vercel" alt="Vercel App" /></a>
 
 
 ---
