@@ -1,41 +1,109 @@
-# 🎨 ColorCraft: Interactive Paint Visualizer
-**Architectural Color Visualization in the Browser**
+# ColorCraft: Interactive Paint Visualizer
 
+**The Professional Architectural Visualization Tool for the Web.**
 
-ColorCraft is a high-performance, client-side tool designed for architects and homeowners to visualize exterior paint colors. By leveraging **Web Workers** for heavy computation and **Vector Analysis** for region identification, it provides a smooth, "smart" painting experience entirely in the web browser.
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Control](https://img.shields.io/badge/control-local-green.svg)
+![Technology](https://img.shields.io/badge/tech-React%20%7C%20TypeScript%20%7C%20Vite-blueviolet.svg)
+
+---
+
+## 🌟 Overview
+
+**ColorCraft** is a sophisticated single-page application (SPA) that allows users to visualize paint colors on architectural images in real-time. Unlike simple overlay tools, ColorCraft uses **computer vision** (Edge Detection + Surface Normals) to identify distinct architectural regions (walls, windows, trim) and apply "smart" paint that respects shadows and textures.
 
 ---
 
 ## 🚀 Key Features
 
-*   **⚡ Non-Blocking Performance**: Uses specialized Web Workers to process millions of pixels without freezing the UI.
-*   **🧠 Smart Segmentation**: Automatically identifies walls, windows, and trim using Edge Mapping and 3D Surface Normals.
-*   **✨ Smart Grouping**: Select one window frame, and instantly select all similar windows across the entire building facade.
-*   **🎨 Realistic Blending**: Uses `multiply` blending modes to ensure paint looks like it's soaked into the texture of the brick or wood.
-*   **🔍 Interactive Viewport**: Silky-smooth zoom and pan controls optimized for large architectural images.
+### 1. Smart Segmentation
+*   **Automatic Region Detection**: Click any part of a building, and the app instantly identifies the entire surface.
+*   **Smart Grouping**: Identify all similar windows or trim pieces across the entire facade with one click.
+    *   *Controls*: Use the "Similarity Sensitivity" slider to adjust strictness.
+
+### 2. Custom Dataset Upload (New!)
+*   **Bring Your Own Data**: Upload your own processed architectural visualizations.
+*   **Requirements**: You need 3 aligned images:
+    1.  `cleaned.png`: The base photo/render.
+    2.  `edge.png`: A black-and-white edge map.
+    3.  `normals.png`: A surface normal map (RGB = XYZ vector).
+*   **How to Use**: Click the **Upload Icon** in the sidebar and select all 3 files at once.
+
+### 3. Interactive Viewport
+*   **Zoom & Pan**:
+    *   **Zoom**: Mouse Wheel or Pinch.
+    *   **Pan**: Hold `Alt + Drag` or Middle Mouse Button.
+*   **Multi-Select**: Hold `Shift + Click` to paint multiple regions at once.
+*   **Clear Paint**: Remove paint from specific regions or clear the entire canvas.
+
+### 4. Professional Palette
+*   **Curated Colors**: A selection of architecturally tuned colors (Warm Beige, Navy Blue, Forest Green, etc.).
+*   **Realistic Blending**: Uses `multiply` mode to preserve building textures under the paint.
 
 ---
 
-## 📖 Documentation (Source of Truth)
+## �️ Installation & Local Development
 
-For a deep dive into the math, architecture, and code, please refer to:
-👉 **[MASTER_PROJECT_DOCUMENTATION.md](file:///Users/abhi/.gemini/antigravity/brain/d866e71a-3161-4eb2-903b-df1bb856ce06/MASTER_PROJECT_DOCUMENTATION.md)**
+### Prerequisites
+*   [Node.js](https://nodejs.org/) (v16 or higher)
+*   npm (comes with Node.js)
+
+### Step-by-Step Guide
+
+1.  **Clone the Repository**
+    ```bash
+    git clone https://github.com/AbhinavGontu/ColorCraftInteractive.git
+    cd ColorCraftInteractive
+    ```
+
+2.  **Install Dependencies**
+    ```bash
+    npm install
+    ```
+
+3.  **Start the Dev Server**
+    ```bash
+    npm run dev
+    ```
+    The app will open at: **[http://localhost:3000](http://localhost:3000)**
+
+4.  **Build for Production**
+    ```bash
+    npm run build
+    ```
 
 ---
 
-## 🛠️ Getting Started
+## � Project Structure
 
-### 1. Install Dependencies
-```bash
-npm install
-```
+*   **/src**
+    *   **/components**: UI elements (`Sidebar`, `ImageViewer`).
+    *   **/store**: State management (`appStore.ts` via Zustand).
+    *   **/utils**: Core logic (`segmentation.worker.ts`, `imageLoader.ts`).
+*   **/public/images**: Default datasets (Models 1-6).
+*   **vercel.json**: Configuration for Vercel deployment.
 
-### 2. Start Development
-```bash
-npm run dev
-```
-The app will be available at: **`http://localhost:3000`**
+---
 
-## 🔧 troubleshooting
-- **Image Mismatch**: If adding new images, ensure the `edge.png`, `normals.png`, and `cleaned.png` files have identical dimensions.
-- **Cache**: If images don't update after replacement, use `Shift + F5` for a hard refresh.
+## ☁️ Deployment
+
+This project is configured for **Vercel**.
+
+1.  Push your changes to the `main` or `master` branch.
+2.  Import the repository in Vercel.
+3.  Vercel will detect `vite.config.ts` and deploy automatically.
+4.  **Note**: The `vercel.json` ensures correctly routing for the Single Page App (SPA).
+
+---
+
+## 📚 Deep Dive Documentation
+
+For a comprehensive understanding of the math and logic:
+
+*   **[Full Stack Walkthrough](file:///Users/abhi/.gemini/antigravity/brain/d866e71a-3161-4eb2-903b-df1bb856ce06/FULL_STACK_WALKTHROUGH.md)**: Traces a single user action through the entire codebase.
+*   **[Master Documentation](file:///Users/abhi/.gemini/antigravity/brain/d866e71a-3161-4eb2-903b-df1bb856ce06/MASTER_PROJECT_DOCUMENTATION.md)**: The complete technical manual.
+
+---
+
+**Author**: Abhinav Gontu
+**License**: MIT
