@@ -239,14 +239,14 @@ graph LR
 
 ## 🧪 7. Architectural Evolution (Discarded Prototypes)
 
-We strictly document prototypes created in **specific git branches** that were merged or discarded.
+We strictly document major prototypes that were implemented and then discarded.
 
-### Prototype A: The "Legacy Main Thread" (Branch: `v1-prototype`)
+### Prototype A: The "Legacy Main Thread"
 *   **Approach**: React `useEffect` + Simple recursion.
 *   **Result**: The browser froze for 3-5 seconds per click.
 *   **Verdict**: **DISCARDED**. The UX was unacceptable.
 
-### Prototype B: The "AI Experiment" (Branch: `experimental-ai-sam`)
+### Prototype B: The "AI Experiment"
 *   **Approach**: We integrated **Meta's SAM 2** (Segment Anything Model) via `onnxruntime-web`.
 *   **Result**:
     1.  **Bloat**: The model weights added **20MB** to the download.
