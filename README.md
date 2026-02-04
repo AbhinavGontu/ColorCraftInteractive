@@ -56,7 +56,9 @@
     ```
 
 2.  **Install Dependencies**
+    *Ensure you are inside the `ColorCraftInteractive` directory:*
     ```bash
+    cd ColorCraftInteractive
     npm install
     ```
 
