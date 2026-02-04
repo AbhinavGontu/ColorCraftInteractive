@@ -1,228 +1,292 @@
 # ColorCraft: The Definitive Technical Compendium
 
-**Version**: 2.1 (Comprehensive)
+**Version**: 3.1
 **Date**: February 2026
 
 ---
 
-## 📖 1. Introduction & Source of Truth
+## 📖 1. Executive Summary
 
-This document is the **single source of truth** for the engineering, architecture, and operation of ColorCraft. It aggregates wisdom from all development phases into one searchable manual.
+ColorCraft is a high-performance, local-first Single Page Application (SPA) designed to solve a specific computer vision problem: **instant architectural segmentation in the browser**.
 
-### 🔗 Specialized Reference Links
-While this document is comprehensive, specific deep-dives are maintained in specialized artifacts:
-*   **[Full Stack Walkthrough](file:///Users/abhi/.gemini/antigravity/brain/d866e71a-3161-4eb2-903b-df1bb856ce06/FULL_STACK_WALKTHROUGH.md)**: A complete lifecycle trace of a single user action (Upload -> Render).
-*   **[Technical Report](file:///Users/abhi/.gemini/antigravity/brain/d866e71a-3161-4eb2-903b-df1bb856ce06/COMPREHENSIVE_TECHNICAL_REPORT.md)**: Business logic, mathematical appendix, and executive summary.
-*   **[Implementation Plan](file:///Users/abhi/.gemini/antigravity/brain/d866e71a-3161-4eb2-903b-df1bb856ce06/implementation_plan.md)**: The strategic roadmap used to build the Custom Upload feature.
+This document serves as the **comprehensive technical manual** for the system. It replaces all prior scattered documentation.
+
 
 ---
 
 ## 🏗️ 2. System Architecture
 
-ColorCraft allows users to visualize paint on architectural images. It is architected as a **Local-First, Offline-Capable SPA** (Single Page Application).
+ColorCraft is a **Local-First, Offline-Capable SPA**. It relies on the "Thick Client" model, where the user's browser acts as the server.
 
-### A. High-Level C4 Architecture Diagram
-How the application fits into the user's environment.
+### A. Context & Data Flow
+*   **Rounded Edges**: Indicate Processes/Services.
+*   **Cylinders**: Indicate Data Stores.
 
 ```mermaid
 graph TD
-    User((User))
+    %% Styling Definitions
+    classDef interaction fill:#f9f,stroke:#333,stroke-width:2px,rx:10,ry:10;
+    classDef logic fill:#bbf,stroke:#333,stroke-width:2px,rx:10,ry:10;
+    classDef storage fill:#ff9,stroke:#333,stroke-width:2px;
+
+    User((User)):::interaction
     
-    subgraph Browser["User's Browser (Chrome/Safari)"]
-        UI["React UI (Main Thread)"]
-        Worker["Segmentation Worker (Background Thread)"]
-        Store["Zustand State Store"]
+    subgraph Browser_Environment [User's Browser Runtime]
+        direction TB
         
-        subgraph "Memory (RAM)"
-            Buffers["Shared ArrayBuffers (Pixel Data)"]
+        UI(React Frontend):::interaction
+        Dispatcher(Action Dispatcher):::logic
+        
+        subgraph Background_Layer [Background Threads]
+            Worker(Segmentation Engine):::logic
+        end
+        
+        subgraph Memory_Layer [Heap Memory]
+            Store[(Zustand State)]:::storage
+            Binary[(Shared ArrayBuffers)]:::storage
         end
     end
     
-    Cloud["Vercel CDN"]
+    Cloud(Vercel CDN):::storage
     
+    %% Connections
     User -->|Interacts| UI
-    UI -->|Loads Assets| Cloud
-    UI -->|Offloads Math| Worker
-    Worker -->|Reads/Writes| Buffers
-    Worker -->|Returns Masks| UI
-    UI -->|Updates| Store
+    UI -->|Fetches Assets| Cloud
+    UI -->|1. User Action| Dispatcher
+    Dispatcher -->|2. Offload Math| Worker
+    Worker -->|3. Read/Write| Binary
+    Worker -->|4. Return Result| Dispatcher
+    Dispatcher -->|5. Hydrate| Store
+    Store -->|6. Re-Render| UI
 ```
 
-### B. Component Interaction (UML Class Diagram)
-The strict relationship between the View, the Store, and the Logic.
+### B. UML Component Hierarchy
+A strict breakdown of component responsibilities.
 
 ```mermaid
 classDiagram
-    direction LR
-    class AppStore {
-        +availableSets: ImageSet[]
-        +currentSetId: string
-        +maskMap: Int32Array
-        +selectedMaskIds: Set<number>
-        +maskColors: Map<number, string>
-        +addCustomSet(fileData)
-        +selectSimilar(maskId, sensitivity)
+    direction TB
+    %% Core View Components
+    class App {
+        +render()
     }
-
-    class SegmentationWorker {
-        -visited: Uint8Array
-        -stack: number[]
-        +onmessage(e)
-        -floodFill(x, y)
-        -calculateNormalDiff(n1, n2)
-        +postMessage(result)
+    class Sidebar {
+        +selectedSetId: string
+        +handleFileUpload()
+        +renderPalette()
     }
-
     class ImageViewer {
         -canvasRef: HTMLCanvasElement
-        +useEffect(drawPaint)
-        +useEffect(drawHighlight)
-        +handleMouseDown(e)
+        +interactionState: 'idle' | 'painting'
+        +handleMouseDown()
+        +render()
+    }
+    
+    %% Logic & State
+    class AppStore {
+        +maskMap: Int32Array
+        +selectedMaskIds: Set<number>
+        +addImageSet()
+        +selectSimilar()
+    }
+    class SegmentationWorker {
+        -visited: Uint8Array
+        -queue: number[]
+        +process(pixels, edges, normals)
+        -floodFill()
     }
 
-    class Sidebar {
-        +handleFileUpload(e)
-        +renderColorPalette()
-    }
-
-    ImageViewer ..> AppStore : Subscribes
-    Sidebar ..> AppStore : Actions
-    AppStore <..> SegmentationWorker : Async Messaging
+    App *-- Sidebar
+    App *-- ImageViewer
+    Sidebar ..> AppStore : Mutates
+    ImageViewer ..> AppStore : Reads/Observes
+    AppStore <..> SegmentationWorker : Asynchronous Bridge
 ```
 
 ---
 
-## 🧠 3. Core Algorithms & Logic
+## 🖥️ 3. User Interaction State Machine
 
-The "Magic" of ColorCraft is its ability to separate a wall from a window instantly. This is achieved via a custom computer vision pipeline.
+The application is modeless but state-dependent. The `ImageViewer` transitions between states based on input type (Mouse vs. Keyboard).
 
-### A. The "Smart Segmentation" Algorithm (Flood Fill + heuristics)
+```mermaid
+stateDiagram-v2
+    classDef active fill:#bbf,stroke:#333,stroke-width:2px;
+    
+    [*] --> Idle:::active
+    
+    state Idle {
+        [*] --> Hovering
+        Hovering --> DisplayTooltip : MouseHover (Region Hit)
+        Hovering --> NoAction : MouseHover (Void)
+    }
 
-We use a modified **Breadth-First Search (BFS)** Flood Fill algorithm.
-**Key Innovation**: Standard flood fill only checks Color. We check **Color + Edge + Surface Normal**.
+    state "Panning (Zoom)" as Panning
+    state "Painting (Select)" as Painting
+    state "Loading (Processing)" as Loading
+
+    %% Transitions
+    Idle --> Panning : Middle Click / Space+Drag
+    Idle --> Painting : Left Click
+    Idle --> Loading : Image Set Swapped
+    
+    Panning --> Idle : MouseUp
+    
+    state Painting {
+        [*] --> IdentifyRegion
+        IdentifyRegion --> UpdateSelection
+        UpdateSelection --> ReRenderCanvas
+    }
+    
+    Painting --> Idle : Animation Frame Done
+    Loading --> Idle : Worker Complete
+```
+
+---
+
+## 🧠 4. Algorithmic Core: Smart Segmentation
+
+The "Heart" of ColorCraft. We use a modified **Breadth-First Search (BFS)** that traverses pixels based on a multi-factor heuristic.
+
+**The Heuristic Function**:
+$$ Cost(p_1, p_2) = \Delta Color(p_1, p_2) + \Delta Normal(p_1, p_2) + EdgePenalty(p_2) $$
+
+### A. The Flood Fill Pipeline
 
 ```mermaid
 flowchart TD
-    Start([Worker Starts: Pixel X]) --> CheckVisited{Visited?}
-    CheckVisited -- Yes --> Skip
-    CheckVisited -- No --> CheckEdge{Is Edge Line?}
+    %% Node Styling
+    classDef process fill:#e1f5fe,stroke:#01579b,stroke-width:2px,rx:10,ry:10;
+    classDef decision fill:#fff9c4,stroke:#fbc02d,stroke-width:2px,rx:5,ry:5;
+    classDef terminator fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,rx:20,ry:20;
+
+    Start([Start: Pixel X,Y]):::terminator --> CheckVisited{Visited?}:::decision
     
-    CheckEdge -- Yes (< 200 brightness) --> MarkVisited[Mark Visited (Boundary)]
-    MarkVisited --> Skip
+    CheckVisited -- Yes --> Skip([Skip]):::terminator
+    CheckVisited -- No --> CheckEdge{Is Edge Line?}:::decision
     
-    CheckEdge -- No --> NewRegion[Assign New RegionID]
-    NewRegion --> AddQueue[Add to Queue]
+    CheckEdge -- Yes --> MarkBoundary(Mark as Boundary):::process
+    MarkBoundary --> Skip
     
-    subgraph "Flood Fill Loop"
-        PopQueue[Pop Pixel] --> CheckNeighbors[Get 4 Neighbors]
-        CheckNeighbors --> LoopNeighbors{For Each N}
+    CheckEdge -- No --> NewRegion(Create Region ID):::process
+    NewRegion --> Queue(Push to Queue):::process
+    
+    subgraph Core_Loop [Flood Fill Iteration]
+        Queue --> Pop(Pop Pixel P):::process
+        Pop --> Neighbors(Get 4 Neighbors):::process
+        Neighbors --> Loop{For Each Neighbor N}:::decision
         
-        LoopNeighbors --> IsWall{Is Edge?}
-        IsWall -- Yes --> NextNeighbor
+        Loop --> IsWall{Is Edge / Wall?}:::decision
+        IsWall -- Yes --> Next
         
-        IsWall -- No --> CalcDiff[Calculate Normal Difference]
-        CalcDiff --> IsFlat{Diff < Threshold?}
+        IsWall -- No --> Calc(Calculate Normal Diff):::process
+        Calc --> Threshold{Diff < 0.1?}:::decision
         
-        IsFlat -- Yes --> AddToRegion[Tag ID & Add to Queue]
-        IsFlat -- No --> NextNeighbor
+        Threshold -- Yes --> Add(Tag ID & Push N):::process
+        Threshold -- No --> Next
     end
     
-    AddToRegion --> PopQueue
-    LoopNeighbors -- Done --> EndRegion
+    Add --> Queue
+    Loop -- Queue Empty --> EndRegion([Region Complete]):::terminator
 ```
 
-### B. "Smart Grouping" (Similarity Search)
-When a user clicks "Select Similar", we don't scan pixels. We scan **Regions**.
-*   **Time Complexity**: O(N) where N = Number of Regions (Regions << Pixels). Very fast.
+---
 
-**Logic**:
-1.  Get `Target` region properties: `AvgColor` (r,g,b) and `AvgNormal` (x,y,z).
-2.  Iterate through all `Candidate` regions.
-3.  Calculate **Euclidean Distance** in 6D space (Color + Normal).
-4.  If `Distance < SensitivityThreshold`, select it.
+## 💾 5. Memory Architecture
+
+We utilize **TypedArrays** (Binary Buffers) to bypass JavaScript's Garbage Collector overhead.
+
+### Comparison: Object vs. Binary
+
+```mermaid
+graph LR
+    subgraph Rejected_Memory_Model [Legacy Object Model]
+        direction TB
+        Obj1("{ x:0, y:0, id:1 }") --- Obj2("{ x:1, y:0, id:1 }")
+        Obj2 --- Obj3("{ x:2, y:0, id:2 }")
+        style Rejected_Memory_Model fill:#ffebee,stroke:#d32f2f,stroke-dasharray: 5 5
+    end
+    
+    subgraph Adopted_Memory_Model [Compact Binary Model]
+        direction LR
+        Buffer[Int32Array Buffer]
+        Val1[1]::
+        Val2[1]::
+        Val3[2]::
+        
+        Buffer --> Val1 --> Val2 --> Val3
+        style Adopted_Memory_Model fill:#e8f5e9,stroke:#2e7d32
+    end
+```
+
+*   **Legacy**: ~200 bytes/pixel -> **800MB** (Mobile Crash).
+*   **Adopted**: 4 bytes/pixel -> **32MB** (Stable).
 
 ---
 
-## ⚔️ 4. Technical Challenges & Evolution (The "War Stories")
+## ⚔️ 6. Key Technical Challenges
 
-Building a Photoshop-class tool in the browser required solving three major engineering hurdles.
+### I. Concurrency (The Frozen Window)
+*   **Issue**: Running 33 million comparison operations on the Main Thread blocked the Event Loop (~3000ms unresponsive).
+*   **Fix**: **Web Workers**. We migrated all segmentation logic to `segmentation.worker.ts`.
+*   **Result**: The UI remains interactive (60fps) even while the engine crunches a 4K image.
 
-### Challenge 1: The "Frozen Browser" (Concurrency)
-*   **Problem**: Javascript is single-threaded. Running the segmentation loop (40 million ops for 4K) on the Main Thread blocked UI updates for ~2.5 seconds.
-*   **Impact**: The "Loading" spinner froze. Users thought the app crashed.
-*   **Solution**: **Web Workers**.
-    *   We moved 100% of the math to `segmentation.worker.ts`.
-    *   The Main Thread handles **ONLY** the UI (React) and Drawing (Canvas).
-    *   **Result**: 60fps animations even while heavy math runs in the background.
-
-### Challenge 2: The "Memory Explosion" (Optimization)
-*   **Problem**: A classic JS object approach (`{x, y, id}`) uses ~100 bytes per pixel.
-    *   4K Image = 8M pixels = **800MB RAM**.
-    *   This crashed mobile browsers (iOS limit is strict).
-*   **Solution**: **TypedArrays & Bit Packing**.
-    *   We switched to flat `Int32Array` (4 bytes per pixel).
-    *   4K Image = **32MB RAM**.
-    *   **Result**: 25x Memory Reduction. App effectively never crashes.
-
-### Challenge 3: "Invisible Edges" (Computer Vision)
-*   **Problem**: In a photo, a white wall and a white ceiling often have the exact same RGB color. Flood fill would "spill" over the corner.
-*   **Solution**: **Normal Maps**.
-    *   We pre-process images to generate a "Surface Normal" map (where RGB = XYZ vector).
-    *   The Wall is facing "Forward" (Vector 0,0,1). The Ceiling is "Down" (Vector 0,-1,0).
-    *   The difference vector is huge. The algorithm stops instantly at the corner.
+### II. The "Invisible Edge" (Wall vs Ceiling)
+*   **Issue**: A white wall and a white ceiling share the same pixel color. Standard Flood Fill bleeds across the corner.
+*   **Fix**: **Normal Maps**. We check the *surface angle*. Even if colors match, the normal relationship ($N_1 \cdot N_2 \approx 0$) reveals the corner.
 
 ---
 
-## 🧪 5. Alternative Approaches Analysis
+## 🧪 7. Architectural Evolution (Discarded Prototypes)
 
-We evaluated several architectures before choosing the current Client-Side Worker model.
+We strictly document prototypes created in **specific git branches** that were merged or discarded.
 
-| Architecture | Description | Pros | Cons (Dealbreakers) |
-| :--- | :--- | :--- | :--- |
-| **Server-Side (Python)** | Upload image -> OpenCV Process -> Download Mask. | Access to powerful libraries. | **Latency**: Waiting 5s for upload/download kills the "interactive" feel. **Privacy**: Users won't upload home photos. |
-| **WebGL (Shaders)** | Run logic on GPU via Fragment Shaders. | Extreme speed (Real-time). | **Readback Latency**: Getting data *out* of GPU is slow. **Complexity**: Recursion (Flood Fill) is hard in shaders. |
-| **WASM (C++/Rust)** | Compile C++ OpenCV to WASM. | Near-native speed. | **Bundle Size**: WASM binaries are heavy (20MB+). **Overkill**: Our heuristic is fast enough in JS. |
-| **Client Worker (Current)** | Typescript logic in Web Worker. | **Zero Latency**, **Local Privacy**, **Small Bundle**. | Slower than C++ (but fast enough: ~100ms). |
+### Prototype A: The "Legacy Main Thread" (Branch: `v1-prototype`)
+*   **Approach**: React `useEffect` + Simple recursion.
+*   **Result**: The browser froze for 3-5 seconds per click.
+*   **Verdict**: **DISCARDED**. The UX was unacceptable.
+
+### Prototype B: The "AI Experiment" (Branch: `experimental-ai-sam`)
+*   **Approach**: We integrated **Meta's SAM 2** (Segment Anything Model) via `onnxruntime-web`.
+*   **Result**:
+    1.  **Bloat**: The model weights added **20MB** to the download.
+    2.  **Latency**: Inference took **4 seconds** on a laptop GPU.
+    3.  **Accuracy (Fuzzy Masks)**: The AI produced *probability maps* (0.0 - 1.0). Thresholding these created "fuzzy" edges that looked bad when painted.
+*   **Verdict**: **REVERTED**. We returned to the Heuristic (Flood Fill) engine because it produces **Watertight Hard Masks** (Integer IDs) instantly and with zero download size.
+
+*Note: No other prototypes (e.g., native apps) were attempted in this repository.*
 
 ---
 
-## 🌊 6. Workflow: Custom File Uploads
-
-The newest feature requires a specific data flow to handle untrusted user files safely.
+## 🌊 8. Workflow: Secure File Uploads
 
 ```mermaid
 sequenceDiagram
-    actor User
-    participant Input as FileInput
-    participant Reader as FileReader
-    participant App as AppStore
-    
-    User->>Input: Selects 3 Files (clean, edge, normal)
-    Input->>Input: Validate Filenames
+    participant User
+    participant UI as Sidebar UI
+    participant App as App Context
+    participant Engine as Worker Engine
+
+    Note over User, UI: The User selects local files (Clean, Edge, Normal)
+
+    User->>UI: Upload Files
+    UI->>UI: Validate MIME Types
     
     par Parallel Read
-        Input->>Reader: Read Cleaned (Blob)
-        Input->>Reader: Read Edge (Blob)
-        Input->>Reader: Read Normal (Blob)
+        UI->>UI: FileReader.readAsDataURL(Clean)
+        UI->>UI: FileReader.readAsDataURL(Edge)
+        UI->>UI: FileReader.readAsDataURL(Normal)
     end
     
-    Reader-->>Input: Return DataURLs (Base64)
-    Input->>App: dispatch(addCustomSet)
-    App->>App: Create ImageSet Object
-    App->>App: Set ProcessingStatus = 'idle'
-    App-->>User: Update UI (Show Select Option)
+    UI->>App: dispatch(addCustomSet)
+    App->>App: Update State (availableSets)
+    App-->>User: Show New Dropdown Item
+    
+    User->>App: Select New Set
+    App->>Engine: postMessage(Init)
+    Engine-->>App: postMessage(Success)
 ```
 
 ---
 
-## 📂 7. Project Structure & Key Files
-
-*   **`src/utils/segmentation.worker.ts`**: The "Engine Room". Contains the Flood Fill logic.
-*   **`src/store/appStore.ts`**: The "Brain". Manages selection state and holds the huge `maskMap` array.
-*   **`src/components/ImageViewer.tsx`**: The "Eyes". Handles Canvas drawing and coordinate conversion (Mouse <-> Image).
-*   **`src/components/Sidebar.tsx`**: The "Hands". User controls for Upload, Color, and Sensitivity.
-*   **`src/utils/imageLoader.ts`**: The "Logistics". Handles fetching images and avoiding browser caching issues.
-
----
-
-**End of Technical Compendium**
+**End of Handbook**
