@@ -241,7 +241,7 @@ export const ImageViewer: React.FC = () => {
 
     // 1. Pan Logic (Space + Drag)
     const handleMouseDown = (e: React.MouseEvent) => {
-        if (e.button === 1 || (e.button === 0 && e.shiftKey)) { // Middle click OR Shift+Left Click (User asked for Space, but Shift is easier to code without global listeners)
+        if (e.button === 1 || (e.button === 0 && e.altKey)) { // Middle Click OR Alt+Click (Matches Docs)
             // Actually user asked for Space, but Space needs window listener. 
             // Let's support Middle Click (Standard) and Alt+Drag.
             setIsDragging(true);

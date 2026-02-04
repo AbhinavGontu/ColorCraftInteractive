@@ -149,7 +149,7 @@ stateDiagram-v2
 The "Heart" of ColorCraft. We use a modified **Breadth-First Search (BFS)** that traverses pixels based on a multi-factor heuristic.
 
 **The Heuristic Function**:
-$$ Cost(p_1, p_2) = \Delta Color(p_1, p_2) + \Delta Normal(p_1, p_2) + EdgePenalty(p_2) $$
+$$ Cost(p_1, p_2) = \Delta Normal(p_1, p_2) + EdgePenalty(p_2) $$
 
 ### A. The Flood Fill Pipeline
 
