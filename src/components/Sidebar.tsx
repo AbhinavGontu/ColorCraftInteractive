@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAppStore } from '../store/appStore';
-import { IMAGE_SETS, PAINT_COLORS } from '../types';
+import { PAINT_COLORS } from '../types';
 import clsx from 'clsx';
 
 export const Sidebar: React.FC = () => {
