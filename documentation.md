@@ -193,7 +193,7 @@ flowchart TD
 
 ---
 
-## ⚔️ 6. Key Technical Challenges
+## ⚔️ 5. Key Technical Challenges
 
 ### I. Concurrency (The Frozen Window)
 *   **Issue**: Running 33 million comparison operations on the Main Thread blocked the Event Loop (~3000ms unresponsive).
@@ -206,7 +206,7 @@ flowchart TD
 
 ---
 
-## 🧪 7. Architectural Evolution (Discarded Prototypes)
+## 🧪 6. Architectural Evolution (Discarded Prototypes)
 
 We strictly document major prototypes that were implemented and then discarded.
 
@@ -227,7 +227,7 @@ We strictly document major prototypes that were implemented and then discarded.
 
 ---
 
-## 🌊 8. Workflow: Secure File Uploads
+## 🌊 7. Workflow: Secure File Uploads
 
 ```mermaid
 sequenceDiagram
