@@ -190,32 +190,6 @@ flowchart TD
     Loop -- Queue Empty --> EndRegion([Region Complete]):::terminator
 ```
 
----
-
-## 💾 5. Memory Architecture
-
-We utilize **TypedArrays** (Binary Buffers) to bypass JavaScript's Garbage Collector overhead.
-
-### Comparison: Object vs. Binary
-
-```mermaid
-graph TB
-    subgraph Rejected_Memory_Model [Legacy Object Model]
-        direction LR
-        Obj1("{ x:0, y:0, id:1 }") --- Obj2("{ x:1, y:0, id:1 }")
-        Obj2 --- Obj3("{ x:2, y:0, id:2 }")
-        style Rejected_Memory_Model fill:#ffebee,stroke:#d32f2f,stroke-dasharray: 5 5,color:#000000
-    end
-    
-    subgraph Adopted_Memory_Model [Compact Binary Model]
-        direction LR
-        Buffer[Int32Array] --> Val1[1] --> Val2[1] --> Val3[2]
-        style Adopted_Memory_Model fill:#e8f5e9,stroke:#2e7d32,color:#000000
-    end
-```
-
-*   **Legacy**: ~200 bytes/pixel -> **800MB** (Mobile Crash).
-*   **Adopted**: 4 bytes/pixel -> **32MB** (Stable).
 
 ---
 
