@@ -2,7 +2,8 @@
 
 **The Architectural Visualization Tool for the Web.**
 
-<a href="https://color-craft-interactive.vercel.app/" target="_blank"><img src="https://img.shields.io/badge/Vercel-App-black.svg?logo=vercel" alt="Vercel App" /></a>
+<a href="https://color-craft-interactive.vercel.app/" target="_blank"><img src="https://img.shields.io/badge/Vercel-App-black.svg?logo=vercel" alt="Vercel App" /></a>  
+*(Use Ctrl/Cmd + Click to open in new tab)*
 
 
 ---
