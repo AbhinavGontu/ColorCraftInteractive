@@ -210,9 +210,9 @@ graph LR
     subgraph Adopted_Memory_Model [Compact Binary Model]
         direction LR
         Buffer[Int32Array Buffer]
-        Val1[1]::
-        Val2[1]::
-        Val3[2]::
+        Val1[1]
+        Val2[1]
+        Val3[2]
         
         Buffer --> Val1 --> Val2 --> Val3
         style Adopted_Memory_Model fill:#e8f5e9,stroke:#2e7d32
