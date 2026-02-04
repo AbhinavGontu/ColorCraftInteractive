@@ -30,8 +30,7 @@
 
 ### 3. Interactive Viewport
 *   **Zoom & Pan**:
-    *   **Zoom**: Mouse Wheel or Pinch.
-    *   **Pan**: Hold `Alt + Drag` or Middle Mouse Button.
+    *   **Zoom**: Mouse Wheel
 *   **Multi-Select**: Hold `Shift + Click` to paint multiple regions at once.
 *   **Clear Paint**: Remove paint from specific regions or clear the entire canvas.
 
